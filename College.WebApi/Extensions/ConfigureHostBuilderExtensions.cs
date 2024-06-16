@@ -1,4 +1,6 @@
-﻿namespace College.WebApi.Extensions;
+﻿using Serilog;
+
+namespace College.WebApi.Extensions;
 
 public static class ConfigureHostBuilderExtensions
 {
@@ -9,6 +11,15 @@ public static class ConfigureHostBuilderExtensions
         host.ConfigureAppConfiguration((_, config) =>
         {
             config.ConfigureCustom(environment);
+        });
+    }
+
+    public static void ConfigureSerilog(this IServiceCollection services, WebApplicationBuilder builder)
+    {
+        builder.Host.UseSerilog((ctx, services, loggerConfiguration) =>
+        {
+            loggerConfiguration
+                .ReadFrom.Configuration(builder.Configuration);
         });
     }
 }
