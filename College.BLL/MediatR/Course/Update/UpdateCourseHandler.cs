@@ -8,41 +8,63 @@ using College.BLL.DTO.Courses;
 using CourseEntity = College.DAL.Entities.Course;
 using TeacherEntity = College.DAL.Entities.Teacher;
 
-namespace College.BLL.MediatR.Course.Create;
+namespace College.BLL.MediatR.Course.Update;
 
-public sealed class CreateCourseHandler : IRequestHandler<CreateCourseCommand, Result<CreateCourseResponseDto>>
+public sealed class UpdateCourseHandler : IRequestHandler<UpdateCourseCommand, Result<UpdateCourseResponseDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
     private readonly ILoggerService _logger;
 
-    public CreateCourseHandler(IRepositoryWrapper repository, IMapper mapper, ILoggerService logger)
+    public UpdateCourseHandler(IRepositoryWrapper repository, IMapper mapper, ILoggerService logger)
     {
         _repositoryWrapper = repository;
         _mapper = mapper;
         _logger = logger;
     }
-    public async Task<Result<CreateCourseResponseDto>> Handle(CreateCourseCommand command, CancellationToken cancellationToken)
+
+    public async Task<Result<UpdateCourseResponseDto>> Handle(UpdateCourseCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;
+
+        var courseToUpdate = _mapper.Map<CourseEntity>(request);
+
+        var existedCourse = await _repositoryWrapper.CoursesRepository
+            .GetFirstOrDefaultAsync(course => course.Id == request.Id);
+
+        if (existedCourse is null)
+        {
+            return CourseNotFoundError(request);
+        }
 
         if (!await IsTeacherExistAsync(request.TeacherId))
         {
             return TeacherNotFoundError(request);
         }
 
-        var courseToCreate = _mapper.Map<CourseEntity>(request);
-        var newCourse = _repositoryWrapper.CoursesRepository.Create(courseToCreate);
+        _repositoryWrapper.CoursesRepository.Update(courseToUpdate);
+
         bool resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
 
         if (!resultIsSuccess)
         {
-            return FailedToCreateCourseError(request);
+            return FailedToUpdateCourseError(request);
         }
 
-        var responseDto = _mapper.Map<CreateCourseResponseDto>(newCourse);
+        var responseDto = _mapper.Map<UpdateCourseResponseDto>(courseToUpdate);
 
         return Result.Ok(responseDto);
+    }
+
+    private Result<UpdateCourseResponseDto> CourseNotFoundError(UpdateCourseRequestDto request)
+    {
+        string errorMsg = string.Format(
+            ErrorMessages.EntityByIdNotFound,
+            typeof(CourseEntity).Name,
+            request.Id);
+        _logger.LogError(request, errorMsg);
+
+        return Result.Fail(errorMsg);
     }
 
     private async Task<bool> IsTeacherExistAsync(Guid teacherId)
@@ -53,7 +75,7 @@ public sealed class CreateCourseHandler : IRequestHandler<CreateCourseCommand, R
         return teacher is not null;
     }
 
-    private Result<CreateCourseResponseDto> TeacherNotFoundError(CreateCourseRequestDto request)
+    private Result<UpdateCourseResponseDto> TeacherNotFoundError(UpdateCourseRequestDto request)
     {
         string errorMsg = string.Format(
             ErrorMessages.ForeignKeyByIdNotFound,
@@ -65,13 +87,14 @@ public sealed class CreateCourseHandler : IRequestHandler<CreateCourseCommand, R
         return Result.Fail(errorMsg);
     }
 
-    private Result<CreateCourseResponseDto> FailedToCreateCourseError(CreateCourseRequestDto request)
+    private Result<UpdateCourseResponseDto> FailedToUpdateCourseError(UpdateCourseRequestDto request)
     {
         string errorMsg = string.Format(
-            ErrorMessages.CreateFailed,
+            ErrorMessages.UpdateFailed,
             typeof(CourseEntity).Name);
         _logger.LogError(request, errorMsg);
 
         return Result.Fail(errorMsg);
     }
 }
+

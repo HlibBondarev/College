@@ -9,7 +9,7 @@ public class Course
     public Guid Id { get; set; }
 
     [Required(ErrorMessage = "Name of course is required")]
-    [StringLength(50, ErrorMessage = "Course name can't be longer than 50 characters")]
+    [StringLength(40, ErrorMessage = "Course name can't be longer than 40 characters")]
     public string? Name { get; set; }
 
     [Required]

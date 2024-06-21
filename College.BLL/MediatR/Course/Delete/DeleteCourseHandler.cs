@@ -1,63 +1,62 @@
 ﻿using FluentResults;
 using MediatR;
-using College.BLL.DTO.Teachers;
+using College.BLL.DTO.Courses;
 using College.BLL.Interfaces;
 using College.BLL.Resources.Errors;
 using College.DAL.Repositories.Interfaces.Base;
-using TeacherEntity = College.DAL.Entities.Teacher;
 
+using CourseEntity = College.DAL.Entities.Course;
 
-namespace College.BLL.MediatR.Teacher.Delete;
+namespace College.BLL.MediatR.Course.Delete;
 
-public class DeleteTeacherHandler : IRequestHandler<DeleteTeacherCommand, Result<DeleteTeacherResponseDto>>
+public class DeleteCourseHandler : IRequestHandler<DeleteCourseCommand, Result<DeleteCourseResponseDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly ILoggerService _logger;
 
-    public DeleteTeacherHandler(IRepositoryWrapper repository, ILoggerService logger)
+    public DeleteCourseHandler(IRepositoryWrapper repository, ILoggerService logger)
     {
         _repositoryWrapper = repository;
         _logger = logger;
     }
 
-    public async Task<Result<DeleteTeacherResponseDto>> Handle(DeleteTeacherCommand command, CancellationToken cancellationToken)
+    public async Task<Result<DeleteCourseResponseDto>> Handle(DeleteCourseCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;
 
-        var teacher = await _repositoryWrapper.TeachersRepository
-           .GetFirstOrDefaultAsync(teacher => teacher.Id == request.Id);
+        var course = await _repositoryWrapper.CoursesRepository
+           .GetFirstOrDefaultAsync(course => course.Id == request.Id);
 
-        if (teacher is null)
+        if (course is null)
         {
             string errorMsg = string.Format(
             ErrorMessages.EntityByIdNotFound,
-            typeof(TeacherEntity).Name,
+            typeof(CourseEntity).Name,
             request.Id);
             _logger.LogError(request, errorMsg);
             return Result.Fail(errorMsg);
         }
 
-        _repositoryWrapper.TeachersRepository.Delete(teacher);
+        _repositoryWrapper.CoursesRepository.Delete(course);
         bool resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
 
         if (!resultIsSuccess)
         {
-            return FailedToDeleteTeacherError(request);
+            return FailedToDeleteCourseError(request);
         }
 
-        var responseDto = new DeleteTeacherResponseDto(true);
+        var responseDto = new DeleteCourseResponseDto(true);
 
         return Result.Ok(responseDto);
     }
 
-    private Result<DeleteTeacherResponseDto> FailedToDeleteTeacherError(DeleteTeacherRequestDto request)
+    private Result<DeleteCourseResponseDto> FailedToDeleteCourseError(DeleteCourseRequestDto request)
     {
         string errorMsg = string.Format(
             ErrorMessages.DeleteFailed,
-            typeof(TeacherEntity).Name,
+            typeof(CourseEntity).Name,
             request.Id);
         _logger.LogError(request, errorMsg);
         return Result.Fail(errorMsg);
     }
 }
-

@@ -1,6 +1,6 @@
-﻿using College.BLL.DTO.Teachers;
-using FluentResults;
+﻿using FluentResults;
 using MediatR;
+using College.BLL.DTO.Teachers;
 
 namespace College.BLL.MediatR.Teacher.GetById;
 

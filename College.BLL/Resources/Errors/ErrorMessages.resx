@@ -130,7 +130,7 @@
     <comment>format: 0 - nameof(EntityClass)</comment>
   </data>
   <data name="EntityByIdNotFound" xml:space="preserve">
-    <value>Cannot find {0} with id: {1}</value>
+    <value>Cannot find {0} with id = {1}</value>
     <comment>format: 0 - nameof(EntityClass), 1 - request id</comment>
   </data>
   <data name="ForeignKeyByIdNotFound" xml:space="preserve">

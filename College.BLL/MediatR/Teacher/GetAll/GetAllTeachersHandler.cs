@@ -7,7 +7,6 @@ using College.BLL.Resources.Errors;
 using College.DAL.Repositories.Interfaces.Base;
 using TeacherEntity = College.DAL.Entities.Teacher;
 
-
 namespace College.BLL.MediatR.Teacher.GetAll;
 
 public class GetAllTeachersHandler : IRequestHandler<GetAllTeachersQuery, Result<IEnumerable<GetAllTeachersResponseDto>>>

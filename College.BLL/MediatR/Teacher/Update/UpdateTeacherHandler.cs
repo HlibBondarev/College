@@ -27,7 +27,7 @@ public sealed class UpdateTeacherHandler : IRequestHandler<UpdateTeacherCommand,
     {
         var request = command.Request;
 
-        var textToUpdate = _mapper.Map<TeacherEntity>(request);
+        var teacherToUpdate = _mapper.Map<TeacherEntity>(request);
 
         var existedTeacher = await _repositoryWrapper.TeachersRepository
             .GetFirstOrDefaultAsync(teacher => teacher.Id == request.Id);
@@ -37,18 +37,16 @@ public sealed class UpdateTeacherHandler : IRequestHandler<UpdateTeacherCommand,
             return TeacherNotFoundError(request);
         }
 
-        //textToUpdate.Id = existedTeacher.Id;
-
-        _repositoryWrapper.TeachersRepository.Update(textToUpdate);
+        _repositoryWrapper.TeachersRepository.Update(teacherToUpdate);
 
         bool resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
 
         if (!resultIsSuccess)
         {
-            return FailedToCreateTeacherError(request);
+            return FailedToUpdateTeacherError(request);
         }
 
-        var responseDto = _mapper.Map<UpdateTeacherResponseDto>(textToUpdate);
+        var responseDto = _mapper.Map<UpdateTeacherResponseDto>(teacherToUpdate);
 
         return Result.Ok(responseDto);
     }
@@ -60,15 +58,17 @@ public sealed class UpdateTeacherHandler : IRequestHandler<UpdateTeacherCommand,
             typeof(TeacherEntity).Name,
             request.Id);
         _logger.LogError(request, errorMsg);
+
         return Result.Fail(errorMsg);
     }
 
-    private Result<UpdateTeacherResponseDto> FailedToCreateTeacherError(UpdateTeacherRequestDto request)
+    private Result<UpdateTeacherResponseDto> FailedToUpdateTeacherError(UpdateTeacherRequestDto request)
     {
         string errorMsg = string.Format(
             ErrorMessages.UpdateFailed,
             typeof(TeacherEntity).Name);
         _logger.LogError(request, errorMsg);
+
         return Result.Fail(errorMsg);
     }
 }

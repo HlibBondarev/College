@@ -21,10 +21,6 @@
 
   <ItemGroup>
     <Folder Include="DTO\Students\" />
-    <Folder Include="MediatR\Course\Delete\" />
-    <Folder Include="MediatR\Course\GetAll\" />
-    <Folder Include="MediatR\Course\GetById\" />
-    <Folder Include="MediatR\Course\Update\" />
     <Folder Include="MediatR\Student\" />
   </ItemGroup>
 
