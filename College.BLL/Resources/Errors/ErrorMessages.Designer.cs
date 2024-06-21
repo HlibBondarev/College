@@ -88,7 +88,7 @@ namespace College.BLL.Resources.Errors {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot find {0} with id: {1}.
+        ///   Looks up a localized string similar to Cannot find {0} with id = {1}.
         /// </summary>
         internal static string EntityByIdNotFound {
             get {

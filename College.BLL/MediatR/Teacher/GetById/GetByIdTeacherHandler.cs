@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using College.BLL.DTO.Teachers;
 using College.BLL.Interfaces;
 using College.BLL.Resources.Errors;
 using College.DAL.Repositories.Interfaces.Base;
 using TeacherEntity = College.DAL.Entities.Teacher;
-using Microsoft.EntityFrameworkCore;
 
 namespace College.BLL.MediatR.Teacher.GetById;
 

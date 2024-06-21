@@ -1,6 +1,6 @@
-﻿using College.BLL.DTO.Teachers;
+﻿using FluentResults;
+using College.BLL.DTO.Teachers;
 using College.BLL.Interfaces;
-using FluentResults;
 
 namespace College.BLL.MediatR.Teacher.Update;
 
