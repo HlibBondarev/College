@@ -6,8 +6,18 @@ public class CreateCourseCommandValidator : AbstractValidator<CreateCourseComman
 {
     public CreateCourseCommandValidator()
     {
-        RuleFor(c => c.Request.Name).NotEmpty().MaximumLength(60).WithName("Name");
-        RuleFor(c => c.Request.Duration).NotEmpty().GreaterThan(0).WithName("Duration");
-        RuleFor(c => c.Request.TeacherId).NotEmpty().WithName("TeacherId");
+        RuleFor(c => c.Request.Name)
+            .NotEmpty()
+            .MaximumLength(60)
+            .WithName("Name");
+
+        RuleFor(c => c.Request.Duration)
+            .NotEmpty()
+            .GreaterThan(0)
+            .WithName("Duration");
+
+        RuleFor(c => c.Request.TeacherId)
+            .NotEmpty()
+            .WithName("TeacherId");
     }
 }

@@ -20,11 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTO\Students\" />
-    <Folder Include="MediatR\Student\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Resources\Errors\ErrorMessages.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

@@ -35,7 +35,11 @@ public interface IRepositoryBase<T>
 
     public Task<T> CreateAsync(T entity);
 
+    void CreateRange(IEnumerable<T> items);
+
     public EntityEntry<T> Update(T entity);
+
+    void UpdateRange(IEnumerable<T> items);
 
     public void Delete(T entity);
 }

@@ -82,9 +82,19 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T>
         return tmp.Entity;
     }
 
+    public void CreateRange(IEnumerable<T> items)
+    {
+        _dbContext.Set<T>().AddRange(items);
+    }
+
     public EntityEntry<T> Update(T entity)
     {
         return _dbContext.Set<T>().Update(entity);
+    }
+
+    public void UpdateRange(IEnumerable<T> items)
+    {
+        _dbContext.Set<T>().UpdateRange(items);
     }
 
     public void Delete(T entity)

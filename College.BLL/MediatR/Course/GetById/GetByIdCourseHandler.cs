@@ -39,10 +39,11 @@ public class GetByIdCourseHandler : IRequestHandler<GetByIdCourseQuery, Result<G
             return Result.Fail(errorMsg);
         }
 
-        var courseStudents = await _repositoryWrapper.CoursesRepository
-                                            .GetAllAsync(
-                                            c => c.Id == request.Id,
-                                            include: c => c.Include(c => c.Teacher!));
+        var courseWithStudents = await _repositoryWrapper.CoursesRepository.GetFirstOrDefaultAsync(
+            predicate: t => t.Id == request.Id,
+            include: c => c.Include(c => c.Students));
+
+        course.Students = courseWithStudents!.Students;
 
         var courseDto = _mapper.Map<GetByIdCourseResponseDto>(course);
 

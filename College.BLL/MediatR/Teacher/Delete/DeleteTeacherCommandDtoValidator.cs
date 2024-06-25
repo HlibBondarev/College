@@ -6,6 +6,8 @@ public class DeleteTeacherCommandDtoValidator : AbstractValidator<DeleteTeacherC
 {
     public DeleteTeacherCommandDtoValidator()
     {
-        RuleFor(c => c.Request.Id).NotEmpty().WithName("Id");
+        RuleFor(c => c.Request.Id)
+            .NotEmpty()
+            .WithName("Id");
     }
 }
