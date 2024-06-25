@@ -22,7 +22,7 @@ namespace College.BLL.Resources.Errors {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class ErrorMessages {
+    public class ErrorMessages {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace College.BLL.Resources.Errors {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("College.BLL.Resources.Errors.ErrorMessages", typeof(ErrorMessages).Assembly);
@@ -51,7 +51,7 @@ namespace College.BLL.Resources.Errors {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace College.BLL.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Failed to create a {0}.
         /// </summary>
-        internal static string CreateFailed {
+        public static string CreateFailed {
             get {
                 return ResourceManager.GetString("CreateFailed", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace College.BLL.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Failed to delete the {0} with id: {1}.
         /// </summary>
-        internal static string DeleteFailed {
+        public static string DeleteFailed {
             get {
                 return ResourceManager.GetString("DeleteFailed", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace College.BLL.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Cannot find any {0}s.
         /// </summary>
-        internal static string EntitiesNotFound {
+        public static string EntitiesNotFound {
             get {
                 return ResourceManager.GetString("EntitiesNotFound", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace College.BLL.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Cannot find {0} with id = {1}.
         /// </summary>
-        internal static string EntityByIdNotFound {
+        public static string EntityByIdNotFound {
             get {
                 return ResourceManager.GetString("EntityByIdNotFound", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace College.BLL.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Cannot find the foreign key {0} with id = {1} in {2}s.
         /// </summary>
-        internal static string ForeignKeyByIdNotFound {
+        public static string ForeignKeyByIdNotFound {
             get {
                 return ResourceManager.GetString("ForeignKeyByIdNotFound", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace College.BLL.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Failed to update the {0} with id: {1}.
         /// </summary>
-        internal static string UpdateFailed {
+        public static string UpdateFailed {
             get {
                 return ResourceManager.GetString("UpdateFailed", resourceCulture);
             }

@@ -15,9 +15,9 @@ public class CreateStudentHandler : IRequestHandler<CreateStudentCommand, Result
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly ILoggerService _logger;
 
-    public CreateStudentHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, ILoggerService logger)
+    public CreateStudentHandler(IRepositoryWrapper repository, IMapper mapper, ILoggerService logger)
     {
-        _repositoryWrapper = repositoryWrapper;
+        _repositoryWrapper = repository;
         _mapper = mapper;
         _logger = logger;
     }
@@ -39,9 +39,9 @@ public class CreateStudentHandler : IRequestHandler<CreateStudentCommand, Result
         }
 
         var studentToCreate = _mapper.Map<StudentEntity>(request);
+        studentToCreate = _repositoryWrapper.StudentsRepository.Create(studentToCreate);
 
         studentToCreate.Courses.Clear();
-        studentToCreate = _repositoryWrapper.StudentsRepository.Create(studentToCreate);
 
         bool resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
         if (!resultIsSuccess)
