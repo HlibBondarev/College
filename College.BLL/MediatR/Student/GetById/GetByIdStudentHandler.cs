@@ -2,45 +2,44 @@
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using College.BLL.DTO.Teachers;
 using College.BLL.Interfaces;
 using College.BLL.Resources.Errors;
 using College.DAL.Repositories.Interfaces.Base;
-using TeacherEntity = College.DAL.Entities.Teacher;
+using College.BLL.DTO.Students;
+using StudentEntity = College.DAL.Entities.Student;
 
-namespace College.BLL.MediatR.Teacher.GetById;
-
-public class GetByIdTeacherHandler : IRequestHandler<GetByIdTeacherQuery, Result<GetByIdTeacherResponseDto>>
+namespace College.BLL.MediatR.Student.GetById;
+public class GetByIdStudentHandler : IRequestHandler<GetByIdStudentQuery, Result<GetByIdStudentResponseDto>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly ILoggerService _logger;
 
-    public GetByIdTeacherHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, ILoggerService logger)
+    public GetByIdStudentHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, ILoggerService logger)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _logger = logger;
     }
 
-    public async Task<Result<GetByIdTeacherResponseDto>> Handle(GetByIdTeacherQuery request, CancellationToken cancellationToken)
+    public async Task<Result<GetByIdStudentResponseDto>> Handle(GetByIdStudentQuery request, CancellationToken cancellationToken)
     {
-        var teacher = await _repositoryWrapper.TeachersRepository.GetFirstOrDefaultAsync(
+        var student = await _repositoryWrapper.StudentsRepository.GetFirstOrDefaultAsync(
             predicate: t => t.Id == request.Id,
             include: t => t.Include(t => t.Courses));
 
-        if (teacher is null)
+        if (student is null)
         {
             string errorMsg = string.Format(
             ErrorMessages.EntityByIdNotFound,
-            typeof(TeacherEntity).Name,
+            typeof(StudentEntity).Name,
             request.Id);
             _logger.LogError(request, errorMsg);
             return Result.Fail(errorMsg);
         }
 
-        var teacherDto = _mapper.Map<GetByIdTeacherResponseDto>(teacher);
+        var studentDto = _mapper.Map<GetByIdStudentResponseDto>(student);
 
-        return Result.Ok(teacherDto);
+        return Result.Ok(studentDto);
     }
 }

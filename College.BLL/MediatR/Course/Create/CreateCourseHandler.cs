@@ -26,7 +26,7 @@ public sealed class CreateCourseHandler : IRequestHandler<CreateCourseCommand, R
     {
         var request = command.Request;
 
-        if (!await IsTeacherExistAsync(request.TeacherId))
+        if (!await IsTeacherExisedtAsync(request.TeacherId))
         {
             return TeacherNotFoundError(request);
         }
@@ -45,7 +45,7 @@ public sealed class CreateCourseHandler : IRequestHandler<CreateCourseCommand, R
         return Result.Ok(responseDto);
     }
 
-    private async Task<bool> IsTeacherExistAsync(Guid teacherId)
+    private async Task<bool> IsTeacherExisedtAsync(Guid teacherId)
     {
         var teacher = await _repositoryWrapper.TeachersRepository
             .GetFirstOrDefaultAsync(s => s.Id == teacherId);
