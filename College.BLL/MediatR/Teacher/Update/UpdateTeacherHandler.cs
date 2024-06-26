@@ -66,7 +66,8 @@ public sealed class UpdateTeacherHandler : IRequestHandler<UpdateTeacherCommand,
     {
         string errorMsg = string.Format(
             ErrorMessages.UpdateFailed,
-            typeof(TeacherEntity).Name);
+            typeof(TeacherEntity).Name,
+            request.Id);
         _logger.LogError(request, errorMsg);
 
         return Result.Fail(errorMsg);

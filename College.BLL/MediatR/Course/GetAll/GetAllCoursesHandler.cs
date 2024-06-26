@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using College.BLL.DTO.Courses;
 using College.BLL.Interfaces;
 using College.BLL.Resources.Errors;
 using College.DAL.Repositories.Interfaces.Base;
 using CourseEntity = College.DAL.Entities.Course;
-using Microsoft.EntityFrameworkCore;
 
 namespace College.BLL.MediatR.Course.GetAll;
 
@@ -29,7 +29,7 @@ public class GetAllCoursesHandler : IRequestHandler<GetAllCoursesQuery, Result<I
             null,
             include: c => c.Include(c => c.Teacher!));
 
-        if (!courses.Any())
+        if (courses is null || !courses.Any())
         {
             string errorMsg = string.Format(
             ErrorMessages.EntitiesNotFound,

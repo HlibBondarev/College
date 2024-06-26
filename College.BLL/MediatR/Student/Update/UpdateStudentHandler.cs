@@ -49,8 +49,8 @@ public sealed class UpdateStudentHandler : IRequestHandler<UpdateStudentCommand,
             return CoursesNotExistedError(request);
         }
 
-        studentToUpdate.Courses.Clear();
         _repositoryWrapper.StudentsRepository.Update(studentToUpdate);
+        studentToUpdate.Courses.Clear();
         bool resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
 
         if (!resultIsSuccess)
@@ -128,7 +128,8 @@ public sealed class UpdateStudentHandler : IRequestHandler<UpdateStudentCommand,
     {
         string errorMsg = string.Format(
             ErrorMessages.UpdateFailed,
-            typeof(StudentEntity).Name);
+            typeof(StudentEntity).Name,
+            request.Id);
         _logger.LogError(request, errorMsg);
 
         return Result.Fail(errorMsg);

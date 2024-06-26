@@ -3,15 +3,17 @@ using FluentResults;
 using FluentAssertions;
 using Moq;
 using College.BLL.Interfaces;
-using College.BLL.MediatR.Teacher.Create;
-using College.DAL.Repositories.Interfaces.Base;
-using College.BLL.DTO.Teachers;
 using College.BLL.Resources.Errors;
-using TeacherEntity = College.DAL.Entities.Teacher;
+using College.DAL.Repositories.Interfaces.Base;
+using College.BLL.DTO.Students;
+using College.BLL.MediatR.Student.Create;
+using System.Linq.Expressions;
+using StudentEntity = College.DAL.Entities.Student;
+using CoursetEntity = College.DAL.Entities.Course;
 
-namespace College.XUnitTest.MediatRTests.Teacher;
+namespace College.XUnitTest.MediatRTests.Student;
 
-public class CreateTeacherHandlerTests
+public class CreateStudentHandlerTests
 {
     const int FAILEDSAVE = -1;
     const int SUCCESSFULSAVE = 1;
@@ -22,7 +24,7 @@ public class CreateTeacherHandlerTests
 
     private readonly CancellationToken _cancellationToken = CancellationToken.None;
 
-    public CreateTeacherHandlerTests()
+    public CreateStudentHandlerTests()
     {
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
@@ -30,13 +32,13 @@ public class CreateTeacherHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ValidCreateTeacherCommand_ShouldSucceed()
+    public async Task Handle_ValidCreateStudentCommand_ShouldSucceed()
     {
         // Arrange
-        var request = GetValidCreateTeacherRequest();
+        var request = GetValidCreateStudentRequest();
         SetupMock(request, SUCCESSFULSAVE);
         var handler = CreateHandler();
-        var command = new CreateTeacherCommand(request);
+        var command = new CreateStudentCommand(request);
 
         // Act
         var result = await handler.Handle(command, _cancellationToken);
@@ -49,10 +51,10 @@ public class CreateTeacherHandlerTests
     public async Task Handle_ShouldReturnResultFail_IfSavingOperationFailed()
     {
         // Arrange
-        var request = GetValidCreateTeacherRequest();
+        var request = GetValidCreateStudentRequest();
         SetupMock(request, FAILEDSAVE);
         var handler = CreateHandler();
-        var command = new CreateTeacherCommand(request);
+        var command = new CreateStudentCommand(request);
 
         // Act
         var result = await handler.Handle(command, _cancellationToken);
@@ -62,14 +64,14 @@ public class CreateTeacherHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ValidCreateTeacherCommand_ShouldReturnResultOfCorrectType()
+    public async Task Handle_ValidCreateStudentCommand_ShouldReturnResultOfCorrectType()
     {
         // Arrange
-        var request = GetValidCreateTeacherRequest();
-        var expectedType = typeof(Result<CreateTeacherResponseDto>);
+        var request = GetValidCreateStudentRequest();
+        var expectedType = typeof(Result<CreateStudentResponseDto>);
         SetupMock(request, SUCCESSFULSAVE);
         var handler = CreateHandler();
-        var command = new CreateTeacherCommand(request);
+        var command = new CreateStudentCommand(request);
 
         // Act
         var result = await handler.Handle(command, _cancellationToken);
@@ -82,10 +84,10 @@ public class CreateTeacherHandlerTests
     public async Task Handle_ShouldCallSaveChangesAsyncOnce_IfInputIsValid()
     {
         // Arrange
-        var request = GetValidCreateTeacherRequest();
+        var request = GetValidCreateStudentRequest();
         SetupMock(request, SUCCESSFULSAVE);
         var handler = CreateHandler();
-        var command = new CreateTeacherCommand(request);
+        var command = new CreateStudentCommand(request);
 
         // Act
         await handler.Handle(command, _cancellationToken);
@@ -98,13 +100,13 @@ public class CreateTeacherHandlerTests
     public async Task Handle_ShouldReturnSingleErrorWithCorrectMessage_IfCommandIsInvalid()
     {
         // Arrange
-        var request = GetValidCreateTeacherRequest();
+        var request = GetValidCreateStudentRequest();
         SetupMock(request, FAILEDSAVE);
         var handler = CreateHandler();
-        var command = new CreateTeacherCommand(request);
+        var command = new CreateStudentCommand(request);
         var expectedErrorMessage = string.Format(
             ErrorMessages.CreateFailed,
-            typeof(TeacherEntity).Name);
+            typeof(StudentEntity).Name);
 
         // Act
         var result = await handler.Handle(command, _cancellationToken);
@@ -113,48 +115,59 @@ public class CreateTeacherHandlerTests
         result.Errors.Should().ContainSingle(e => e.Message == expectedErrorMessage);
     }
 
-    private CreateTeacherHandler CreateHandler()
+    private CreateStudentHandler CreateHandler()
     {
-        return new CreateTeacherHandler(
+        return new CreateStudentHandler(
             repository: _mockRepositoryWrapper.Object,
             mapper: _mockMapper.Object,
             logger: _mockLogger.Object);
     }
 
-    private void SetupMock(CreateTeacherRequestDto request, int saveChangesAsyncResult)
+    private void SetupMock(CreateStudentRequestDto request, int saveChangesAsyncResult)
     {
-        var teacherEntity = new TeacherEntity
+        var courseList = new List<CoursetEntity>() { new CoursetEntity() { Id = Guid.Empty, Name = "Title", Duration = 10 } };
+        var studentEntity = new StudentEntity
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
-            Degree = request.Degree,
+            DateOfBirth = DateTime.Now,
+            Courses = courseList
         };
 
         _mockRepositoryWrapper
-            .Setup(r => r.TeachersRepository.Create(It.IsAny<TeacherEntity>()))
-            .Returns(teacherEntity);
+            .Setup(x => x.BeginTransaction())
+            .Returns(new System.Transactions.TransactionScope());
 
-        _mockRepositoryWrapper.
-            Setup(repo => repo.SaveChangesAsync())
+        _mockRepositoryWrapper
+            .Setup(r => r.CoursesRepository.GetAllAsync(It.IsAny<Expression<Func<CoursetEntity, bool>>>(), null))
+            .ReturnsAsync(courseList);
+
+        _mockRepositoryWrapper
+            .Setup(r => r.StudentsRepository.Create(It.IsAny<StudentEntity>()))
+            .Returns(studentEntity);
+
+        _mockRepositoryWrapper
+            .Setup(repo => repo.SaveChangesAsync())
             .ReturnsAsync(saveChangesAsyncResult);
 
         _mockMapper
-            .Setup(m => m.Map<TeacherEntity>(It.IsAny<CreateTeacherRequestDto>()))
-            .Returns(teacherEntity);
+            .Setup(m => m.Map<StudentEntity>(It.IsAny<CreateStudentRequestDto>()))
+            .Returns(studentEntity);
         _mockMapper
-            .Setup(m => m.Map<CreateTeacherResponseDto>(It.IsAny<TeacherEntity>()))
-            .Returns(GetValidCreateTeacherResponse());
+            .Setup(m => m.Map<CreateStudentResponseDto>(It.IsAny<StudentEntity>()))
+            .Returns(GetValidCreateStudentResponse());
     }
 
-    private static CreateTeacherRequestDto GetValidCreateTeacherRequest()
+    private static CreateStudentRequestDto GetValidCreateStudentRequest()
     {
-        return new CreateTeacherRequestDto(
+        return new CreateStudentRequestDto(
             Name: "Title",
-            Degree: "PH Doctor");
+            DateOfBirth: new DateTime(year: DateTime.Now.Year - 25, month: 1, day: 1),
+            StudentCourses: new List<Guid>() { Guid.Empty });
     }
 
-    private static CreateTeacherResponseDto GetValidCreateTeacherResponse()
+    private static CreateStudentResponseDto GetValidCreateStudentResponse()
     {
-        return new CreateTeacherResponseDto(Id: Guid.NewGuid());
+        return new CreateStudentResponseDto(Id: Guid.NewGuid());
     }
 }

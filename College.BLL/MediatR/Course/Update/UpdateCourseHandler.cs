@@ -91,7 +91,8 @@ public sealed class UpdateCourseHandler : IRequestHandler<UpdateCourseCommand, R
     {
         string errorMsg = string.Format(
             ErrorMessages.UpdateFailed,
-            typeof(CourseEntity).Name);
+            typeof(CourseEntity).Name,
+            request.Id);
         _logger.LogError(request, errorMsg);
 
         return Result.Fail(errorMsg);
