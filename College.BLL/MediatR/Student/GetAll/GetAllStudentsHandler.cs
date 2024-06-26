@@ -25,8 +25,7 @@ public class GetAllStudentsHandler : IRequestHandler<GetAllStudentsQuery, Result
     public async Task<Result<IEnumerable<GetAllStudentsResponseDto>>> Handle(GetAllStudentsQuery request, CancellationToken cancellationToken)
     {
         var students = await _repositoryWrapper.StudentsRepository.GetAllAsync();
-
-        if (!students.Any())
+        if (students is null || !students.Any())
         {
             string errorMsg = string.Format(
             ErrorMessages.EntitiesNotFound,

@@ -26,7 +26,7 @@ public class GetAllTeachersHandler : IRequestHandler<GetAllTeachersQuery, Result
     {
         var teachers = await _repositoryWrapper.TeachersRepository.GetAllAsync();
 
-        if (!teachers.Any())
+        if (teachers is null || !teachers.Any())
         {
             string errorMsg = string.Format(
             ErrorMessages.EntitiesNotFound,
