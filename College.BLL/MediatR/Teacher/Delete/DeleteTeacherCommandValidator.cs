@@ -2,9 +2,9 @@
 
 namespace College.BLL.MediatR.Teacher.Delete;
 
-public class DeleteTeacherCommandDtoValidator : AbstractValidator<DeleteTeacherCommand>
+public class DeleteTeacherCommandValidator : AbstractValidator<DeleteTeacherCommand>
 {
-    public DeleteTeacherCommandDtoValidator()
+    public DeleteTeacherCommandValidator()
     {
         RuleFor(c => c.Request.Id)
             .NotEmpty()
