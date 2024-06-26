@@ -14,6 +14,7 @@ public class CreateCourseCommandValidator : AbstractValidator<CreateCourseComman
         RuleFor(c => c.Request.Duration)
             .NotEmpty()
             .GreaterThan(0)
+            .LessThan(400)
             .WithName("Duration");
 
         RuleFor(c => c.Request.TeacherId)
