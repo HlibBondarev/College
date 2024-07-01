@@ -45,9 +45,9 @@ public static class ServiceExtensions
     {
         string connectionString;
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Local";
-        if (environment == "Local")
+        if (environment == "Local" || environment == "Development")
         {
-            var connection = configuration.GetSection(environment).GetConnectionString("DefaultConnection");
+            var connection = configuration.GetSection("Local").GetSection("ConnectionStrings").GetValue<string>("DefaultConnection");
             connectionString = connection ?? throw new InvalidOperationException($"'DefaultConnection' is null or not found for the '{environment}' environment.");
         }
         else
