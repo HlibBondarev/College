@@ -8,6 +8,11 @@ using MediatR;
 using College.BLL.Behaviors;
 using FluentValidation;
 using College.BLL.MediatR.Teacher.Create;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using College.DAL.Entities.JwtAuthentication;
+using Microsoft.AspNetCore.Identity;
 
 
 namespace College.WebApi.Extensions;
@@ -28,6 +33,10 @@ public static class ServiceExtensions
             cfg.AddOpenBehavior(typeof(RequestResponseLoggingBehavior<,>));
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
+
+        //User Manager Service
+        services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<CollegeDbContext>();
+        //services.AddScoped<IUserService, UserService>();
     }
 
     public static void ConfigureCors(this IServiceCollection services)
@@ -58,5 +67,27 @@ public static class ServiceExtensions
 
         services.AddDbContext<CollegeDbContext>(o => o.UseMySql(connectionString,
             MySqlServerVersion.LatestSupportedServerVersion));
+    }
+
+    public static void ConfigureJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddAuthentication(opt => {
+            opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = configuration.GetSection("TokenValidationParameters").GetValue<bool>("ValidateIssuer"),
+            ValidateAudience = configuration.GetSection("TokenValidationParameters").GetValue<bool>("ValidateAudience"),
+            ValidateLifetime = configuration.GetSection("TokenValidationParameters").GetValue<bool>("ValidateLifetime"),
+            ValidateIssuerSigningKey = configuration.GetSection("TokenValidationParameters").GetValue<bool>("ValidateIssuerSigningKey"),          
+            ValidIssuer = configuration.GetSection("JWT").GetValue<string>("Issuer"),
+            ValidAudience = configuration.GetSection("JWT").GetValue<string>("Audience"),
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(configuration.GetSection("JWT").GetValue<string>("Key")!))
+        };
+    });
     }
 }

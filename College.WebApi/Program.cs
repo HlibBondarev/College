@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.ConfigureApplication();
 
 // Add services to the container.
+builder.Services.ConfigureJwtAuthentication(builder.Configuration);
 builder.Services.ConfigureMySqlContext(builder.Configuration);
 builder.Services.ConfigureCors();
 builder.Services.AddCustomServices(builder.Environment);
@@ -29,9 +30,17 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName=="Local")
 
 await app.ApplyMigrations();
 
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.SeedRoles(builder).Wait();
+    scope.ServiceProvider.SeedAdmin(builder).Wait();
+}
+
 app.UseHttpsRedirection();
 
 app.UseCors("CorsPolicy");
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
