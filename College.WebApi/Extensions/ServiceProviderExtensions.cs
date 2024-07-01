@@ -8,7 +8,7 @@ public static class ServiceProviderExtensions
     public static async Task SeedRoles(this IServiceProvider app, WebApplicationBuilder builder)
     {
         var roleManager = app.GetRequiredService<RoleManager<IdentityRole>>();
-        var roles = builder.Configuration.GetSection("Authentication").GetValue<List<string>>("Roles");
+        var roles = builder.Configuration.GetSection("Authentication").GetSection("Roles").Get<IEnumerable<string>>();
 
         foreach (var role in roles!)
         {
