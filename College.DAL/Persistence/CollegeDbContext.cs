@@ -1,9 +1,12 @@
-﻿using College.DAL.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using College.DAL.Entities;
+using College.DAL.Entities.JwtAuthentication;
+
 
 namespace College.DAL.Persistence;
 
-public class CollegeDbContext : DbContext
+public class CollegeDbContext : IdentityDbContext<ApplicationUser>
 {
     public CollegeDbContext()
     {
@@ -13,6 +16,12 @@ public class CollegeDbContext : DbContext
         : base(options)
     {
     }
+
+
+    //public CollegeDbContext(DbContextOptions options) : base(options)
+    //{
+    //}
+
 
     public DbSet<Course>? Courses { get; set; }
     public DbSet<Student>? Students { get; set; }
