@@ -18,9 +18,9 @@ public class CollegeDbContext : IdentityDbContext<ApplicationUser>
     }
 
 
-    public CollegeDbContext(DbContextOptions options) : base(options)
-    {
-    }
+    //public CollegeDbContext(DbContextOptions options) : base(options)
+    //{
+    //}
 
 
     public DbSet<Course>? Courses { get; set; }

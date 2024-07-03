@@ -39,7 +39,7 @@ public static class ServiceProviderExtensions
             var result = await userManager.CreateAsync(user, password!);
             if (result.Succeeded)
             {
-                await userManager.AddToRoleAsync(user, builder.Configuration.GetSection("Authentication").GetValue<List<string>>("Roles")![0]);
+                await userManager.AddToRoleAsync(user, builder.Configuration.GetSection("Authentication").GetSection("Roles").Get<List<string>>()![0]);
             }
         }
     }
