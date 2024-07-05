@@ -1,26 +1,34 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using College.BLL.Interfaces;
 using College.BLL.Services.JwtAuthentication.Models;
 using College.BLL.Services.JwtAuthentication.Settings;
 using College.DAL.Entities.JwtAuthentication;
-using System.Net;
+using College.DAL.Repositories.Interfaces.Base;
 
 namespace College.BLL.Services.JwtAuthentication;
 
 public class UserService : IUserService
 {
+    private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly JWT _jwt;
     private readonly Authentication _authentication;
 
-    public UserService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt, IOptions<Authentication> authentication)
+    public UserService(IRepositoryWrapper repositoryWrapper,
+                       UserManager<ApplicationUser> userManager,
+                       RoleManager<IdentityRole> roleManager,
+                       IOptions<JWT> jwt,
+                       IOptions<Authentication> authentication)
     {
+        _repositoryWrapper = repositoryWrapper;
         _userManager = userManager;
         _roleManager = roleManager;
         _jwt = jwt.Value;
@@ -44,6 +52,8 @@ public class UserService : IUserService
             {
                 await _userManager.AddToRoleAsync(user, "User");
             }
+            _repositoryWrapper.SaveChanges();
+
             return $"User Registered with username {user.UserName}";
         }
         else
@@ -51,10 +61,14 @@ public class UserService : IUserService
             return $"Email {user.Email} is already registered.";
         }
     }
+
     public async Task<AuthenticationModel> GetTokenAsync(TokenRequestModel model)
     {
         var authenticationModel = new AuthenticationModel();
-        var user = await _userManager.FindByEmailAsync(model.Email!);
+        var user = await _repositoryWrapper.UsersRepository.GetSingleOrDefaultAsync(
+                        predicate: u => u.Email == model.Email,
+                        include: qu => qu.Include(u => u.RefreshTokens));
+
         if (user == null)
         {
             authenticationModel.IsAuthenticated = false;
@@ -70,44 +84,28 @@ public class UserService : IUserService
             authenticationModel.UserName = user.UserName!;
             var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
             authenticationModel.Roles = rolesList.ToList();
+
+            if (user.RefreshTokens.Any(a => a.IsActive))
+            {
+                var activeRefreshToken = user.RefreshTokens.Where(a => a.IsActive == true).FirstOrDefault();
+                authenticationModel.RefreshToken = activeRefreshToken!.Token!;
+                authenticationModel.RefreshTokenExpiration = activeRefreshToken.Expires;
+            }
+            else
+            {
+                var refreshToken = CreateRefreshToken();
+                authenticationModel.RefreshToken = refreshToken.Token!;
+                authenticationModel.RefreshTokenExpiration = refreshToken.Expires;
+                user.RefreshTokens.Add(refreshToken);
+                _repositoryWrapper.UsersRepository.Update(user);
+                await _repositoryWrapper.SaveChangesAsync();
+            }
+
             return authenticationModel;
         }
         authenticationModel.IsAuthenticated = false;
         authenticationModel.Message = $"Incorrect Credentials for user {user.Email}.";
         return authenticationModel;
-    }
-    private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
-    {
-        var userClaims = await _userManager.GetClaimsAsync(user);
-        var roles = await _userManager.GetRolesAsync(user);
-
-        var roleClaims = new List<Claim>();
-
-        for (int i = 0; i < roles.Count; i++)
-        {
-            roleClaims.Add(new Claim("roles", roles[i]));
-        }
-
-        var claims = new[]
-        {
-        new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-        new Claim("uid", user.Id)
-    }
-        .Union(userClaims)
-        .Union(roleClaims);
-
-        var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
-        var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
-
-        var jwtSecurityToken = new JwtSecurityToken(
-            issuer: _jwt.Issuer,
-            audience: _jwt.Audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_jwt.DurationInMinutes),
-            signingCredentials: signingCredentials);
-        return jwtSecurityToken;
     }
 
     public async Task<string> AddRoleAsync(AddRoleModel model)
@@ -130,5 +128,128 @@ public class UserService : IUserService
             return $"Role {model.Role} not found.";
         }
         return $"Incorrect Credentials for user {user.Email}.";
+    }
+
+    public async Task<AuthenticationModel> RefreshTokenAsync(string token)
+    {
+        var authenticationModel = new AuthenticationModel();
+        var user = await _repositoryWrapper.UsersRepository.GetSingleOrDefaultAsync(
+                        predicate: u => u.RefreshTokens.Any(t => t.Token == token),
+                        include: qu => qu.Include(u => u.RefreshTokens));
+
+        if (user == null)
+        {
+            authenticationModel.IsAuthenticated = false;
+            authenticationModel.Message = $"Token did not match any users.";
+            return authenticationModel;
+        }
+
+        var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
+
+        if (!refreshToken.IsActive)
+        {
+            authenticationModel.IsAuthenticated = false;
+            authenticationModel.Message = $"Token Not Active.";
+            return authenticationModel;
+        }
+
+        //Revoke Current Refresh Token
+        refreshToken.Revoked = DateTime.UtcNow;
+
+        //Generate new Refresh Token and save to Database
+        var newRefreshToken = CreateRefreshToken();
+        user.RefreshTokens.Add(newRefreshToken);
+        _repositoryWrapper.Update(user);
+        _repositoryWrapper.SaveChanges();
+        authenticationModel.RefreshToken = newRefreshToken.Token!;
+        authenticationModel.RefreshTokenExpiration = newRefreshToken.Expires;
+
+        //Generates new jwt
+        authenticationModel.IsAuthenticated = true;
+        JwtSecurityToken jwtSecurityToken = await CreateJwtToken(user);
+        authenticationModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+        authenticationModel.Email = user.Email!;
+        authenticationModel.UserName = user.UserName!;
+        var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
+        authenticationModel.Roles = rolesList.ToList();
+        return authenticationModel;
+    }
+
+    public async Task<ApplicationUser> GetById(string id)
+    {
+        return await _repositoryWrapper.UsersRepository.GetSingleOrDefaultAsync(
+                      predicate: u => u.Id == id,
+                      include: qu => qu.Include(u => u.RefreshTokens));
+    }
+
+    public async Task<bool> RevokeToken(string token)
+    {
+        var user = await _repositoryWrapper.UsersRepository.GetSingleOrDefaultAsync(
+                        predicate: u => u.RefreshTokens.Any(t => t.Token == token),
+                        include: qu => qu.Include(u => u.RefreshTokens));
+
+        // return false if no user found with token
+        if (user == null) return false;
+
+        var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
+
+        // return false if token is not active
+        if (!refreshToken.IsActive) return false;
+
+        // revoke token and save
+        refreshToken.Revoked = DateTime.UtcNow;
+        _repositoryWrapper.Update(user);
+        _repositoryWrapper.SaveChanges();
+
+        return true;
+    }
+
+    private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
+    {
+        var userClaims = await _userManager.GetClaimsAsync(user);
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var roleClaims = new List<Claim>();
+
+        for (int i = 0; i < roles.Count; i++)
+        {
+            roleClaims.Add(new Claim("roles", roles[i]));
+        }
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+            new Claim("uid", user.Id)
+        }
+        .Union(userClaims)
+        .Union(roleClaims);
+
+        var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
+        var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
+
+        var jwtSecurityToken = new JwtSecurityToken(
+            issuer: _jwt.Issuer,
+            audience: _jwt.Audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(_jwt.DurationInMinutes),
+            signingCredentials: signingCredentials);
+        return jwtSecurityToken;
+    }
+
+    private RefreshToken CreateRefreshToken()
+    {
+        var randomNumber = new byte[32];
+        using (var generator = new RNGCryptoServiceProvider())
+        {
+            generator.GetBytes(randomNumber);
+            return new RefreshToken
+            {
+                Token = Convert.ToBase64String(randomNumber),
+                Expires = DateTime.UtcNow.AddDays(20),
+                Created = DateTime.UtcNow
+            };
+        }
     }
 }
