@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿//a.HasKey("ApplicationUserId", "Created");
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using College.DAL.Entities;
 using College.DAL.Entities.JwtAuthentication;
@@ -8,25 +9,16 @@ namespace College.DAL.Persistence;
 
 public class CollegeDbContext : IdentityDbContext<ApplicationUser>
 {
-    public CollegeDbContext()
-    {
-    }
-
     public CollegeDbContext(DbContextOptions<CollegeDbContext> options)
         : base(options)
     {
     }
 
-
-    //public CollegeDbContext(DbContextOptions options) : base(options)
-    //{
-    //}
-
-
     public DbSet<Course>? Courses { get; set; }
     public DbSet<Student>? Students { get; set; }
     public DbSet<StudentCourse>? StudentCourses { get; set; }
     public DbSet<Teacher>? Teachers { get; set; }
+    public DbSet<ApplicationUser>? ApplicationUser { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
