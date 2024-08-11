@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace College.WebApi.Controllers;
 
-[Authorize]
+//[Authorize]
 public class UserController : BaseApiController
 {
     private readonly IUserService _userService;
@@ -48,7 +48,7 @@ public class UserController : BaseApiController
     }
 
     [HttpPost]
-    public async Task<IActionResult>  GetRefreshTokensAsync(string id)
+    public async Task<IActionResult> GetRefreshTokensAsync(string id)
     {
         var user = await _userService.GetById(id);
         return Ok(user.RefreshTokens);

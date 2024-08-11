@@ -11,6 +11,7 @@ using College.BLL.Services.JwtAuthentication.Models;
 using College.BLL.Services.JwtAuthentication.Settings;
 using College.DAL.Entities.JwtAuthentication;
 using College.DAL.Repositories.Interfaces.Base;
+using FluentValidation;
 
 namespace College.BLL.Services.JwtAuthentication;
 
@@ -21,22 +22,29 @@ public class UserService : IUserService
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly JWT _jwt;
     private readonly Authentication _authentication;
-
+    private readonly ILoggerService _logger;
+    private readonly IValidator<RegisterModel> _userValidator;
     public UserService(IRepositoryWrapper repositoryWrapper,
                        UserManager<ApplicationUser> userManager,
                        RoleManager<IdentityRole> roleManager,
                        IOptions<JWT> jwt,
-                       IOptions<Authentication> authentication)
+                       IOptions<Authentication> authentication,
+                       ILoggerService logger,
+                       IValidator<RegisterModel> userValidator)
     {
         _repositoryWrapper = repositoryWrapper;
         _userManager = userManager;
         _roleManager = roleManager;
         _jwt = jwt.Value;
         _authentication = authentication.Value;
+        _logger = logger;
+        _userValidator = userValidator;
     }
 
     public async Task<string> RegisterAsync(RegisterModel model)
     {
+        _userValidator.ValidateAndThrow(model);
+
         var user = new ApplicationUser
         {
             UserName = model.UserName,
@@ -44,6 +52,7 @@ public class UserService : IUserService
             FirstName = model.FirstName!,
             LastName = model.LastName!
         };
+
         var userWithSameEmail = await _userManager.FindByEmailAsync(model.Email!);
         if (userWithSameEmail == null)
         {
@@ -175,7 +184,7 @@ public class UserService : IUserService
         return authenticationModel;
     }
 
-    public async Task<ApplicationUser> GetById(string id)
+    public async Task<ApplicationUser?> GetById(string id)
     {
         return await _repositoryWrapper.UsersRepository.GetSingleOrDefaultAsync(
                       predicate: u => u.Id == id,
