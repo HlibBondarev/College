@@ -23,14 +23,17 @@ public class UserService : IUserService
     private readonly JWT _jwt;
     private readonly Authentication _authentication;
     private readonly ILoggerService _logger;
-    private readonly IValidator<RegisterModel> _userValidator;
+    private readonly IValidator<RegisterModel> _registerModelValidator;
+    private readonly IValidator<TokenRequestModel> _tokenRequestModelValidator;
+
     public UserService(IRepositoryWrapper repositoryWrapper,
                        UserManager<ApplicationUser> userManager,
                        RoleManager<IdentityRole> roleManager,
                        IOptions<JWT> jwt,
                        IOptions<Authentication> authentication,
                        ILoggerService logger,
-                       IValidator<RegisterModel> userValidator)
+                       IValidator<RegisterModel> registerModelValidator,
+                       IValidator<TokenRequestModel> tokenRequestModelValidator)
     {
         _repositoryWrapper = repositoryWrapper;
         _userManager = userManager;
@@ -38,12 +41,13 @@ public class UserService : IUserService
         _jwt = jwt.Value;
         _authentication = authentication.Value;
         _logger = logger;
-        _userValidator = userValidator;
+        _registerModelValidator = registerModelValidator;
+        _tokenRequestModelValidator = tokenRequestModelValidator;
     }
 
     public async Task<string> RegisterAsync(RegisterModel model)
     {
-        _userValidator.ValidateAndThrow(model);
+        _registerModelValidator.ValidateAndThrow(model);
 
         var user = new ApplicationUser
         {
@@ -73,6 +77,8 @@ public class UserService : IUserService
 
     public async Task<AuthenticationModel> GetTokenAsync(TokenRequestModel model)
     {
+        _tokenRequestModelValidator.ValidateAndThrow(model);
+
         var authenticationModel = new AuthenticationModel();
         var user = await _repositoryWrapper.UsersRepository.GetSingleOrDefaultAsync(
                         predicate: u => u.Email == model.Email,

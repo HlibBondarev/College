@@ -13,6 +13,7 @@ public class RegisterModelValidator : AbstractValidator<RegisterModel>
     public const int MAXFIRSTNAMELENGTH = 25;
     public const int MAXLASTNAMELENGTH = 25;
     public const int MAXUSERNAMELENGTH = 25;
+    readonly static string _template = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\da-zA-Z]).{4,15}$";
 
     public RegisterModelValidator()
     {
@@ -38,6 +39,7 @@ public class RegisterModelValidator : AbstractValidator<RegisterModel>
 
         RuleFor(rm => rm.Password)
             .NotEmpty()
-            .MinimumLength(MINPASSLENGTH);
+            .MinimumLength(MINPASSLENGTH)
+            .Matches(_template);
     }
 }
