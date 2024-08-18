@@ -16,6 +16,9 @@ using College.DAL.Entities.JwtAuthentication;
 using College.DAL.Persistence;
 using College.DAL.Repositories.Interfaces.Base;
 using College.DAL.Repositories.Realizations.Base;
+using College.Redis;
+using Microsoft.Extensions.Configuration;
+using StackExchange.Redis;
 
 namespace College.WebApi.Extensions;
 
@@ -38,6 +41,9 @@ public static class ServiceExtensions
 
         //User Manager Service
         services.AddScoped<IUserService, UserService>();
+
+        // Caching in Redis
+        services.AddSingleton<ICacheService, CacheService>();
     }
 
     public static void ConfigureCors(this IServiceCollection services)
@@ -87,6 +93,22 @@ public static class ServiceExtensions
         });
     }
 
+    public static void ConfigureRedis(this IServiceCollection services, IConfiguration configuration)
+    {
+        var isRedisEnabled = configuration.GetValue<bool>("Redis:Enabled");
+        var redisConnection = $"{configuration.GetValue<string>("Redis:Server")}:{configuration.GetValue<int>("Redis:Port")},password={configuration.GetValue<string>("Redis:Password")}";
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection;            
+            options.ConnectionMultiplexerFactory = async () =>
+            {
+                var connection = await ConnectionMultiplexer.ConnectAsync(redisConnection);
+                return connection;
+            };
+        });
+    }
+
     public static void ConfigureMySqlContext(this IServiceCollection services, IConfiguration configuration)
     {
         string connectionString;
@@ -129,7 +151,7 @@ public static class ServiceExtensions
 
             ValidIssuer = configuration.GetSection("JWT").GetValue<string>("Issuer"),
             ValidAudience = configuration.GetSection("JWT").GetValue<string>("Audience"),
-            
+
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetSection("JWT").GetValue<string>("Key")!))
         };
     });

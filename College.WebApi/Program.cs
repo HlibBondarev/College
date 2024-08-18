@@ -7,6 +7,7 @@ builder.Host.ConfigureApplication();
 
 // Add services to the container.
 builder.Services.ConfigureMySqlContext(builder.Configuration);
+builder.Services.ConfigureRedis(builder.Configuration);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddSwaggerServices();
 builder.Services.ConfigureJwtAuthentication(builder.Configuration);

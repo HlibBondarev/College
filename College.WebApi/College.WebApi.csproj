@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\College.BLL\College.BLL.csproj" />
+    <ProjectReference Include="..\College.Redis\College.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>
