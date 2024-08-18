@@ -11,6 +11,7 @@ using College.BLL.Services.JwtAuthentication.Models;
 using College.BLL.Services.JwtAuthentication.Settings;
 using College.DAL.Entities.JwtAuthentication;
 using College.DAL.Repositories.Interfaces.Base;
+using FluentValidation;
 
 namespace College.BLL.Services.JwtAuthentication;
 
@@ -21,22 +22,36 @@ public class UserService : IUserService
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly JWT _jwt;
     private readonly Authentication _authentication;
+    private readonly ILoggerService _logger;
+    private readonly IValidator<RegisterModel> _registerModelValidator;
+    private readonly IValidator<TokenRequestModel> _tokenRequestModelValidator;
+    private readonly IValidator<AddRoleModel> _addRoleModelValidator;
 
     public UserService(IRepositoryWrapper repositoryWrapper,
                        UserManager<ApplicationUser> userManager,
                        RoleManager<IdentityRole> roleManager,
                        IOptions<JWT> jwt,
-                       IOptions<Authentication> authentication)
+                       IOptions<Authentication> authentication,
+                       ILoggerService logger,
+                       IValidator<RegisterModel> registerModelValidator,
+                       IValidator<TokenRequestModel> tokenRequestModelValidator,
+                       IValidator<AddRoleModel> addRoleModelValidator)
     {
         _repositoryWrapper = repositoryWrapper;
         _userManager = userManager;
         _roleManager = roleManager;
         _jwt = jwt.Value;
         _authentication = authentication.Value;
+        _logger = logger;
+        _registerModelValidator = registerModelValidator;
+        _tokenRequestModelValidator = tokenRequestModelValidator;
+        _addRoleModelValidator = addRoleModelValidator;
     }
 
     public async Task<string> RegisterAsync(RegisterModel model)
     {
+        _registerModelValidator.ValidateAndThrow(model);
+
         var user = new ApplicationUser
         {
             UserName = model.UserName,
@@ -44,6 +59,7 @@ public class UserService : IUserService
             FirstName = model.FirstName!,
             LastName = model.LastName!
         };
+
         var userWithSameEmail = await _userManager.FindByEmailAsync(model.Email!);
         if (userWithSameEmail == null)
         {
@@ -64,6 +80,8 @@ public class UserService : IUserService
 
     public async Task<AuthenticationModel> GetTokenAsync(TokenRequestModel model)
     {
+        _tokenRequestModelValidator.ValidateAndThrow(model);
+
         var authenticationModel = new AuthenticationModel();
         var user = await _repositoryWrapper.UsersRepository.GetSingleOrDefaultAsync(
                         predicate: u => u.Email == model.Email,
@@ -110,6 +128,8 @@ public class UserService : IUserService
 
     public async Task<string> AddRoleAsync(AddRoleModel model)
     {
+        _addRoleModelValidator.ValidateAndThrow(model);
+
         var user = await _userManager.FindByEmailAsync(model.Email!);
         if (user == null)
         {
@@ -123,7 +143,7 @@ public class UserService : IUserService
             {
                 var validRole = _authentication.Roles.Where(x => x.ToString().ToLower() == model.Role!.ToLower()).FirstOrDefault();
                 await _userManager.AddToRoleAsync(user, validRole!.ToString());
-                return $"Added {model.Role} to user {model.Email}.";
+                return $"Added {model.Role} role to user {model.Email}.";
             }
             return $"Role {model.Role} not found.";
         }
@@ -175,7 +195,7 @@ public class UserService : IUserService
         return authenticationModel;
     }
 
-    public async Task<ApplicationUser> GetById(string id)
+    public async Task<ApplicationUser?> GetById(string id)
     {
         return await _repositoryWrapper.UsersRepository.GetSingleOrDefaultAsync(
                       predicate: u => u.Id == id,
@@ -247,7 +267,7 @@ public class UserService : IUserService
             return new RefreshToken
             {
                 Token = Convert.ToBase64String(randomNumber),
-                Expires = DateTime.UtcNow.AddDays(20),
+                Expires = DateTime.UtcNow.AddDays(10),
                 Created = DateTime.UtcNow
             };
         }

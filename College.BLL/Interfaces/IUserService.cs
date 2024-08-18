@@ -9,6 +9,6 @@ public interface IUserService
     Task<AuthenticationModel> GetTokenAsync(TokenRequestModel model);
     Task<string> AddRoleAsync(AddRoleModel model);
     Task<AuthenticationModel> RefreshTokenAsync(string token);
-    Task<ApplicationUser> GetById(string id);
+    Task<ApplicationUser?> GetById(string id);
     Task<bool> RevokeToken(string token);
 }

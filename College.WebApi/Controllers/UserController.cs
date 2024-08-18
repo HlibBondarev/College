@@ -15,6 +15,7 @@ public class UserController : BaseApiController
     }
 
     [HttpPost]
+    [AllowAnonymous]
     public async Task<ActionResult> RegisterAsync(RegisterModel model)
     {
         var result = await _userService.RegisterAsync(model);
@@ -31,6 +32,7 @@ public class UserController : BaseApiController
     }
 
     [HttpPost]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> AddRoleAsync(AddRoleModel model)
     {
         var result = await _userService.AddRoleAsync(model);
@@ -48,7 +50,7 @@ public class UserController : BaseApiController
     }
 
     [HttpPost]
-    public async Task<IActionResult>  GetRefreshTokensAsync(string id)
+    public async Task<IActionResult> GetRefreshTokensAsync(string id)
     {
         var user = await _userService.GetById(id);
         return Ok(user.RefreshTokens);
