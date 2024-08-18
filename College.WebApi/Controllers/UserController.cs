@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace College.WebApi.Controllers;
 
-//[Authorize]
+[Authorize]
 public class UserController : BaseApiController
 {
     private readonly IUserService _userService;
@@ -15,6 +15,7 @@ public class UserController : BaseApiController
     }
 
     [HttpPost]
+    [AllowAnonymous]
     public async Task<ActionResult> RegisterAsync(RegisterModel model)
     {
         var result = await _userService.RegisterAsync(model);
@@ -31,6 +32,7 @@ public class UserController : BaseApiController
     }
 
     [HttpPost]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> AddRoleAsync(AddRoleModel model)
     {
         var result = await _userService.AddRoleAsync(model);
