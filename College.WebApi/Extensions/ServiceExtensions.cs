@@ -17,8 +17,9 @@ using College.DAL.Persistence;
 using College.DAL.Repositories.Interfaces.Base;
 using College.DAL.Repositories.Realizations.Base;
 using College.Redis;
-using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
+using College.BLL.Services.Memento.Interfaces;
+using College.BLL.Services.Memento;
 
 namespace College.WebApi.Extensions;
 
@@ -44,6 +45,11 @@ public static class ServiceExtensions
 
         // Caching in Redis
         services.AddSingleton<ICacheService, CacheService>();
+        services.AddSingleton<IRedisCacheService, CacheService>();
+        services.AddSingleton(typeof(IWideMemento), typeof(Memento));
+        services.AddSingleton(typeof(IMementoService<>), typeof(MementoService<>));
+        services.AddSingleton(typeof(IStorage), typeof(Storage));
+        //services.AddSingleton(typeof(INarrowMemento), typeof(Memento<>));
     }
 
     public static void ConfigureCors(this IServiceCollection services)
@@ -97,16 +103,44 @@ public static class ServiceExtensions
     {
         var isRedisEnabled = configuration.GetValue<bool>("Redis:Enabled");
         var redisConnection = $"{configuration.GetValue<string>("Redis:Server")}:{configuration.GetValue<int>("Redis:Port")},password={configuration.GetValue<string>("Redis:Password")}";
+        var signalRBuilder = services.AddSignalR();
+
+        if (isRedisEnabled)
+        {
+            signalRBuilder.AddStackExchangeRedis(redisConnection, options =>
+            {
+                options.Configuration.AbortOnConnectFail = false;
+                options.ConnectionFactory = async writer =>
+                {
+                    var connection = await ConnectionMultiplexer.ConnectAsync(options.Configuration, writer);
+                    //connection.UseElasticApm();
+                    return connection;
+                };
+            });
+
+            // TODO: Try to rework or remove if chat will stop working correctly
+            //services.AddSingleton(typeof(HubLifetimeManager<>), typeof(LocalDistributedHubLifetimeManager<>));
+        }
 
         services.AddStackExchangeRedisCache(options =>
         {
-            options.Configuration = redisConnection;            
+            options.Configuration = redisConnection;
             options.ConnectionMultiplexerFactory = async () =>
             {
                 var connection = await ConnectionMultiplexer.ConnectAsync(redisConnection);
                 return connection;
             };
         });
+
+        // Redis options
+        services.AddOptions<RedisConfig>()
+            .Bind(configuration.GetSection(RedisConfig.Name))
+            .ValidateDataAnnotations();
+
+        // MemoryCache options
+        services.AddOptions<MemoryCacheConfig>()
+            .Bind(configuration.GetSection(MemoryCacheConfig.Name))
+            .ValidateDataAnnotations();
     }
 
     public static void ConfigureMySqlContext(this IServiceCollection services, IConfiguration configuration)

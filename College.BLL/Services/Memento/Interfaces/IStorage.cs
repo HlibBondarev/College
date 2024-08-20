@@ -1,7 +1,9 @@
-﻿namespace College.BLL.Services.Memento.Interfaces;
+﻿using College.Redis;
 
-public interface IStorage<T>
+namespace College.BLL.Services.Memento.Interfaces;
+
+public interface IStorage
 {
-    INarrowMemento? this[string key] { get; set; }
-    void DeleteMemento(INarrowMemento? memento);
+    KeyValuePair<string, string?> this[string key] { get; set; }
+    IRedisCacheService RedisCacheService {  set; }
 }

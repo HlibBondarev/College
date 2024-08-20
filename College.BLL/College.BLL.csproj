@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\College.DAL\College.DAL.csproj" />
+    <ProjectReference Include="..\College.Redis\College.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>

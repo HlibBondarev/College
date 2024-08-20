@@ -2,5 +2,4 @@
 
 public interface INarrowMemento
 {
-    KeyValuePair<string, string> State { get; set; }
 }

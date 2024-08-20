@@ -1,7 +1,6 @@
 ﻿namespace College.BLL.Services.Memento.Interfaces;
 
-public interface IWideMemento<T> : INarrowMemento
+public interface IWideMemento : INarrowMemento
 {
-    T? GetState();
-    void SetState(T value, string key);
+    KeyValuePair<string, string?> State { get; set; }
 }

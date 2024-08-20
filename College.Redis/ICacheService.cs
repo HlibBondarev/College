@@ -13,5 +13,4 @@ public interface ICacheService
 
 public interface IMultiLayerCacheService : ICacheService
 {
-
 }

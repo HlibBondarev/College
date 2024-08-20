@@ -3,6 +3,6 @@
 public interface IMementoService<T>
 {
     T? State { get; set; }
-    INarrowMemento CreateMemento(string key);
-    void SetMemento(INarrowMemento? memento);
+    IWideMemento CreateMemento(string key, T value);
+    void RestoreMemento(KeyValuePair<string, string?> memento);
 }

@@ -1,50 +1,45 @@
 ﻿using College.BLL.Services.Memento.Interfaces;
+using College.Redis;
 
 namespace College.BLL.Services.Memento;
 
-public class Storage<T> : IStorage<T>
+public class Storage : IStorage
 {
-    private readonly Dictionary<string, string> _items = new Dictionary<string, string>();
-    private readonly INarrowMemento _memento;
+    private IRedisCacheService? _redisCacheService;
 
-    public Storage(INarrowMemento memento)
+    public IRedisCacheService RedisCacheService
     {
-        _memento = memento;
+        set
+        {
+            _redisCacheService = value;
+        }
     }
 
-    public INarrowMemento? this[string key]
+    public KeyValuePair<string, string?> this[string key]
     {
         get
         {
-            var itemKey = string.Format("{0}_{1}", key, typeof(T).Name);
-            if (_items.TryGetValue(itemKey, out string? stateValue))
+            if (_redisCacheService is not null)
             {
-                _memento.State = new KeyValuePair<string, string>(key, stateValue);
-                return _memento;
+                Task<string?> task = Task.Run(async () => await _redisCacheService.GetValueFromRedisCacheAsync(key));
+                return new KeyValuePair<string, string?>(key, task.Result);
             }
-            return null;
+            return new KeyValuePair<string, string?>();
         }
         set
         {
-            var itemKey = string.Format("{0}_{1}", key, typeof(T).Name);
-            if (_items.TryGetValue(itemKey, out string? stateValue))
+            if (_redisCacheService is not null)
             {
-                _items[itemKey] = value!.State.Value;
-            }
-            else
-            {
-                _items.Add(value!.State.Key, value!.State.Value);
+                Task.Run(async () => await _redisCacheService.SetValueToRedisCacheAsync(key, value.Value ?? string.Empty));
             }
         }
     }
 
-    public void DeleteMemento(INarrowMemento? memento)
-    {
-        if (memento is null) return;
-
-        if (_items.ContainsKey(memento.State.Key))
-        {
-            _items.Remove(memento.State.Key);
-        }
-    }
+    //public void DeleteMemento(INarrowMemento memento)
+    //{
+    //    if (_memento is IWideMemento wideMemento)
+    //    {
+    //        Task.Run(async () => await _redisCacheService.GetValueFromRedisCacheAsync(wideMemento.State.Key));
+    //    }
+    //}
 }
