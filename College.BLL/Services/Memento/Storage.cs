@@ -1,5 +1,6 @@
 ﻿using College.BLL.Services.Memento.Interfaces;
 using College.Redis;
+using Newtonsoft.Json.Linq;
 
 namespace College.BLL.Services.Memento;
 
@@ -35,11 +36,11 @@ public class Storage : IStorage
         }
     }
 
-    //public void DeleteMemento(INarrowMemento memento)
-    //{
-    //    if (_memento is IWideMemento wideMemento)
-    //    {
-    //        Task.Run(async () => await _redisCacheService.GetValueFromRedisCacheAsync(wideMemento.State.Key));
-    //    }
-    //}
+    public void RemoveMemento(string key)
+    {
+        if (_redisCacheService is not null)
+        {
+            Task.Run(async () => await _redisCacheService.RemoveValueFromRedisCacheAsync(key));
+        }
+    }
 }

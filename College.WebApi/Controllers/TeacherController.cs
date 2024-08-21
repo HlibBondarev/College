@@ -20,7 +20,7 @@ public class TeacherController : BaseApiController
     private readonly IStorage _storage;
 
 
-    public TeacherController(IRedisCacheService redisCacheService, 
+    public TeacherController(IRedisCacheService redisCacheService,
                              IMementoService<TeacherMemento> mementoService,
                              IStorage storage)
     {
@@ -75,5 +75,13 @@ public class TeacherController : BaseApiController
         _storage.RedisCacheService = _redisCacheService;
         _mementoService.RestoreMemento(_storage[userId]);
         return Ok(_mementoService.State);
+    }
+
+    [HttpGet]
+    public IActionResult RemoveMemento(/*[FromBody] */string userId)
+    {
+        _storage.RedisCacheService = _redisCacheService;
+        _storage.RemoveMemento(userId);
+        return Ok(string.Format("{0} deletion process is completed", typeof(TeacherMemento).Name));
     }
 }

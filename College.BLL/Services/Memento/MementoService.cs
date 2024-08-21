@@ -25,4 +25,10 @@ public class MementoService<T> : IMementoService<T>
         _wideMemento.State = new KeyValuePair<string, string?>(string.Format("{0}_{1}", key, typeof(T).Name), JsonConvert.SerializeObject(value));
         return _wideMemento;
     }
+
+    public void DeleteMemento(string key)
+    {
+        var mementoKey = string.Format("{0}_{1}", key, typeof(T).Name);
+        throw new NotImplementedException();
+    }
 }

@@ -9,4 +9,6 @@ public interface IRedisCacheService
         string value,
         TimeSpan? absoluteExpirationRelativeToNowInterval = null,
         TimeSpan? slidingExpirationInterval = null);
+
+    Task RemoveValueFromRedisCacheAsync(string key);
 }

@@ -105,6 +105,22 @@ public class CacheService : ICacheService, IRedisCacheService, IDisposable
             }
         });
 
+
+    public Task RemoveValueFromRedisCacheAsync(string key)
+       => ExecuteRedisMethod(() =>
+       {
+           cacheLock.EnterWriteLock();
+           try
+           {
+               cache.Remove(key);
+           }
+           finally
+           {
+               if (cacheLock.IsWriteLockHeld)
+                   cacheLock.ExitWriteLock();
+           }
+       });
+
     public async Task<string?> GetValueFromRedisCacheAsync(string key)
     {
         string? returnValue = null;
