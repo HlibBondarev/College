@@ -78,7 +78,7 @@ public class TeacherController : BaseApiController
     }
 
     [HttpGet]
-    public IActionResult RemoveMemento(/*[FromBody] */string userId)
+    public IActionResult RemoveMemento(string userId)
     {
         _storage.RedisCacheService = _redisCacheService;
         _storage.RemoveMemento(userId);
