@@ -9,10 +9,11 @@ using College.BLL.MediatR.Teacher.GetById;
 using College.BLL.Services.Memento.Models;
 using College.BLL.Services.Memento.Interfaces;
 using College.Redis;
+using College.BLL.Common;
 
 namespace College.WebApi.Controllers;
 
-//[Authorize]
+[Authorize]
 public class TeacherController : BaseApiController
 {
     private readonly IRedisCacheService _redisCacheService;
@@ -61,27 +62,30 @@ public class TeacherController : BaseApiController
     }
 
     [HttpPost]
-    public IActionResult StoreMemento(string userId, [FromBody] TeacherMemento teacherMemento)
+    public async Task<IActionResult> StoreMemento([FromBody] TeacherMemento teacherMemento)
     {
+        var userId = GettingUserProperties.GetUserId(User);
         var memento = _mementoService.CreateMemento(userId, teacherMemento);
         _storage.RedisCacheService = _redisCacheService;
-        _storage[userId] = memento.State;
+        await _storage.SetMementoValueAsync(memento.State);
         return Ok(string.Format("{0} is stored", typeof(TeacherMemento).Name));
     }
 
     [HttpGet]
-    public IActionResult RestoreMemento(string userId)
+    public async Task<IActionResult> RestoreMemento()
     {
+        var mementoKey = _mementoService.GetMementoKey(GettingUserProperties.GetUserId(User));
         _storage.RedisCacheService = _redisCacheService;
-        _mementoService.RestoreMemento(_storage[userId]);
+        _mementoService.RestoreMemento(await _storage.GetMementoValueAsync(mementoKey));
         return Ok(_mementoService.State);
     }
 
     [HttpGet]
-    public IActionResult RemoveMemento(string userId)
+    public async Task<IActionResult> RemoveMemento()
     {
+        var mementoKey = _mementoService.GetMementoKey(GettingUserProperties.GetUserId(User));
         _storage.RedisCacheService = _redisCacheService;
-        _storage.RemoveMemento(userId);
+        await _storage.RemoveMementoAsync(mementoKey);
         return Ok(string.Format("{0} deletion process is completed", typeof(TeacherMemento).Name));
     }
 }

@@ -21,14 +21,12 @@ public class MementoService<T> : IMementoService<T>
 
     public IWideMemento CreateMemento(string key, T value)
     {
-        var mementoKey = string.Format("{0}_{1}", key, typeof(T).Name);
-        _wideMemento.State = new KeyValuePair<string, string?>(string.Format("{0}_{1}", key, typeof(T).Name), JsonConvert.SerializeObject(value));
+        _wideMemento.State = new KeyValuePair<string, string?>(GetMementoKey(key), JsonConvert.SerializeObject(value));
         return _wideMemento;
     }
 
-    public void DeleteMemento(string key)
+    public string GetMementoKey(string key)
     {
-        var mementoKey = string.Format("{0}_{1}", key, typeof(T).Name);
-        throw new NotImplementedException();
+        return string.Format("{0}_{1}", key, typeof(T).Name);
     }
 }

@@ -4,7 +4,9 @@ namespace College.BLL.Services.Memento.Interfaces;
 
 public interface IStorage
 {
-    KeyValuePair<string, string?> this[string key] { get; set; }
     IRedisCacheService RedisCacheService { set; }
-    void RemoveMemento(string key);
+    Task SetMementoValueAsync(KeyValuePair<string, string?> keyValue);
+    Task<KeyValuePair<string, string?>> GetMementoValueAsync(string key);
+    Task RemoveMementoAsync(string key);
+    //KeyValuePair<string, string?> this[string key] { get; set; }
 }

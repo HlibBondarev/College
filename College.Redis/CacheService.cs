@@ -106,8 +106,8 @@ public class CacheService : ICacheService, IRedisCacheService, IDisposable
         });
 
 
-    public Task RemoveValueFromRedisCacheAsync(string key)
-       => ExecuteRedisMethod(() =>
+    public async Task RemoveValueFromRedisCacheAsync(string key)
+       => await ExecuteRedisMethod(() =>
        {
            cacheLock.EnterWriteLock();
            try
@@ -116,8 +116,7 @@ public class CacheService : ICacheService, IRedisCacheService, IDisposable
            }
            finally
            {
-               if (cacheLock.IsWriteLockHeld)
-                   cacheLock.ExitWriteLock();
+               cacheLock.ExitWriteLock();
            }
        });
 
