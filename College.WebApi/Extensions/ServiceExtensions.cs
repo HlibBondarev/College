@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using StackExchange.Redis;
 using College.BLL.Behaviors;
 using College.BLL.Interfaces;
 using College.BLL.Interfaces.Logging;
@@ -16,6 +17,11 @@ using College.DAL.Entities.JwtAuthentication;
 using College.DAL.Persistence;
 using College.DAL.Repositories.Interfaces.Base;
 using College.DAL.Repositories.Realizations.Base;
+using College.Redis.Interfaces;
+using College.Redis;
+using College.Redis.Models;
+using College.BLL.Services.DraftStorage.Interfaces;
+using College.BLL.Services.DraftStorage;
 
 namespace College.WebApi.Extensions;
 
@@ -38,6 +44,12 @@ public static class ServiceExtensions
 
         //User Manager Service
         services.AddScoped<IUserService, UserService>();
+
+        // Caching in Redis
+        services.AddSingleton<ICacheService, CacheService>();
+
+        // Draft storage service
+        services.AddSingleton(typeof(IDraftStorageService<>), typeof(DraftStorageService<>));
     }
 
     public static void ConfigureCors(this IServiceCollection services)
@@ -87,6 +99,50 @@ public static class ServiceExtensions
         });
     }
 
+    public static void ConfigureRedis(this IServiceCollection services, IConfiguration configuration)
+    {
+        var isRedisEnabled = configuration.GetValue<bool>("Redis:Enabled");
+        var redisConnection = $"{configuration.GetValue<string>("Redis:Server")}:{configuration.GetValue<int>("Redis:Port")},password={configuration.GetValue<string>("Redis:Password")}";
+        var signalRBuilder = services.AddSignalR();
+
+        if (isRedisEnabled)
+        {
+            signalRBuilder.AddStackExchangeRedis(redisConnection, options =>
+            {
+                options.Configuration.AbortOnConnectFail = false;
+                options.ConnectionFactory = async writer =>
+                {
+                    var connection = await ConnectionMultiplexer.ConnectAsync(options.Configuration, writer);
+                    //connection.UseElasticApm();
+                    return connection;
+                };
+            });
+
+            // TODO: Try to rework or remove if chat will stop working correctly
+            //services.AddSingleton(typeof(HubLifetimeManager<>), typeof(LocalDistributedHubLifetimeManager<>));
+        }
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection;
+            options.ConnectionMultiplexerFactory = async () =>
+            {
+                var connection = await ConnectionMultiplexer.ConnectAsync(redisConnection);
+                return connection;
+            };
+        });
+
+        // Redis options
+        services.AddOptions<RedisConfig>()
+            .Bind(configuration.GetSection(RedisConfig.Name))
+            .ValidateDataAnnotations();
+
+        // MemoryCache options
+        services.AddOptions<MemoryCacheConfig>()
+            .Bind(configuration.GetSection(MemoryCacheConfig.Name))
+            .ValidateDataAnnotations();
+    }
+
     public static void ConfigureMySqlContext(this IServiceCollection services, IConfiguration configuration)
     {
         string connectionString;
@@ -129,7 +185,7 @@ public static class ServiceExtensions
 
             ValidIssuer = configuration.GetSection("JWT").GetValue<string>("Issuer"),
             ValidAudience = configuration.GetSection("JWT").GetValue<string>("Audience"),
-            
+
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetSection("JWT").GetValue<string>("Key")!))
         };
     });

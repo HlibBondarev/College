@@ -4,8 +4,8 @@ using College.BLL.DTO.Teachers;
 using College.BLL.MediatR.Teacher.Create;
 using College.BLL.MediatR.Teacher.Delete;
 using College.BLL.MediatR.Teacher.GetAll;
-using College.BLL.MediatR.Teacher.Update;
 using College.BLL.MediatR.Teacher.GetById;
+using College.BLL.MediatR.Teacher.Update;
 
 namespace College.WebApi.Controllers;
 

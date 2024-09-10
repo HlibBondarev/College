@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace College.DAL.Entities;
+﻿namespace College.DAL.Entities;
 
 public class StudentCourse
 {
