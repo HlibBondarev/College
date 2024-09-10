@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace College.Redis;
+namespace College.Redis.Models;
 
 public class MemoryCacheConfig
 {

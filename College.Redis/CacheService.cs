@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using StackExchange.Redis;
+using System.Diagnostics.CodeAnalysis;
+using College.Redis.Interfaces;
+using College.Redis.Models;
 
 namespace College.Redis;
 
-public class CacheService : ICacheService, IRedisCacheService, IDisposable
+public class CacheService : ICacheService, IDisposable
 {
     private readonly ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
     private readonly IDistributedCache cache;
@@ -20,9 +22,12 @@ public class CacheService : ICacheService, IRedisCacheService, IDisposable
 
     public CacheService(
         IDistributedCache cache,
-        IOptions<RedisConfig> redisConfig
+        [NotNull] IOptions<RedisConfig> redisConfig
     )
     {
+        ArgumentNullException.ThrowIfNull(cache);
+        ArgumentNullException.ThrowIfNull(redisConfig.Value);
+
         this.cache = cache;
 
         try
@@ -36,93 +41,30 @@ public class CacheService : ICacheService, IRedisCacheService, IDisposable
         }
     }
 
-    public async Task<T> GetOrAddAsync<T>(
-        string key,
-        Func<Task<T>> newValueFactory,
-        TimeSpan? absoluteExpirationRelativeToNowInterval = null,
-        TimeSpan? slidingExpirationInterval = null)
+    public Task RemoveAsync(string key)
     {
-        T returnValue = default;
-        bool isExists = false;
+        ArgumentException.ThrowIfNullOrEmpty(key);
 
-        await ExecuteRedisMethod(() =>
-        {
-            cacheLock.EnterReadLock();
-            try
-            {
-                var value = cache.GetString(key);
-
-                if (value != null)
-                {
-                    returnValue = JsonConvert.DeserializeObject<T>(value);
-                    isExists = true;
-                    return;
-                }
-            }
-            finally
-            {
-                cacheLock.ExitReadLock();
-            }
-        });
-
-        if (!isExists)
-        {
-            returnValue = await newValueFactory();
-            await ExecuteRedisMethod(() =>
+        return ExecuteRedisMethod(() =>
             {
                 cacheLock.EnterWriteLock();
                 try
                 {
-                    var options = new DistributedCacheEntryOptions
-                    {
-                        AbsoluteExpirationRelativeToNow = absoluteExpirationRelativeToNowInterval ?? redisConfig.AbsoluteExpirationRelativeToNowInterval,
-                        SlidingExpiration = slidingExpirationInterval ?? redisConfig.SlidingExpirationInterval,
-                    };
-
-                    cache.SetString(key, JsonConvert.SerializeObject(returnValue), options);
+                    cache.Remove(key);
                 }
                 finally
                 {
                     cacheLock.ExitWriteLock();
                 }
             });
-        }
-
-        return returnValue;
     }
 
-    public Task RemoveAsync(string key)
-        => ExecuteRedisMethod(async () =>
-        {
-            cacheLock.EnterWriteLock();
-            try
-            {
-                await cache.RemoveAsync(key);
-            }
-            finally
-            {
-                cacheLock.ExitWriteLock();
-            }
-        });
-
-
-    public async Task RemoveValueFromRedisCacheAsync(string key)
-       => await ExecuteRedisMethod(() =>
-       {
-           cacheLock.EnterWriteLock();
-           try
-           {
-               cache.Remove(key);
-           }
-           finally
-           {
-               cacheLock.ExitWriteLock();
-           }
-       });
-
-    public async Task<string?> GetValueFromRedisCacheAsync(string key)
+    public async Task<string?> ReadAsync(string key)
     {
-        string? returnValue = null;
+        ArgumentException.ThrowIfNullOrEmpty(key);
+
+        string? returnValue = string.Empty;
+
         await ExecuteRedisMethod(() =>
         {
             cacheLock.EnterReadLock();
@@ -139,8 +81,11 @@ public class CacheService : ICacheService, IRedisCacheService, IDisposable
         return returnValue;
     }
 
-    public async Task SetValueToRedisCacheAsync(string key, string value, TimeSpan? absoluteExpirationRelativeToNowInterval = null, TimeSpan? slidingExpirationInterval = null)
+    public async Task WriteAsync(string key, string value, TimeSpan? absoluteExpirationRelativeToNowInterval = null, TimeSpan? slidingExpirationInterval = null)
     {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentException.ThrowIfNullOrEmpty(value);
+
         await ExecuteRedisMethod(() =>
         {
             cacheLock.EnterWriteLock();
@@ -160,6 +105,7 @@ public class CacheService : ICacheService, IRedisCacheService, IDisposable
             }
         });
     }
+
 
     public void Dispose()
     {

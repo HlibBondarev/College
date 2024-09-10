@@ -1,16 +1,14 @@
-﻿namespace College.Redis;
+﻿namespace College.Redis.Interfaces;
 
 public interface ICacheService
 {
-    Task<T> GetOrAddAsync<T>(
+    Task<string?> ReadAsync(string key);
+
+    Task WriteAsync(
         string key,
-        Func<Task<T>> newValueFactory,
+        string value,
         TimeSpan? absoluteExpirationRelativeToNowInterval = null,
         TimeSpan? slidingExpirationInterval = null);
 
     Task RemoveAsync(string key);
-}
-
-public interface IMultiLayerCacheService : ICacheService
-{
 }

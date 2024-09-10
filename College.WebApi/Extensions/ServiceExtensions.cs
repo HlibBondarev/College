@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using StackExchange.Redis;
 using College.BLL.Behaviors;
 using College.BLL.Interfaces;
 using College.BLL.Interfaces.Logging;
@@ -16,10 +17,11 @@ using College.DAL.Entities.JwtAuthentication;
 using College.DAL.Persistence;
 using College.DAL.Repositories.Interfaces.Base;
 using College.DAL.Repositories.Realizations.Base;
+using College.Redis.Interfaces;
 using College.Redis;
-using StackExchange.Redis;
-using College.BLL.Services.Memento.Interfaces;
-using College.BLL.Services.Memento;
+using College.Redis.Models;
+using College.BLL.Services.DraftStorage.Interfaces;
+using College.BLL.Services.DraftStorage;
 
 namespace College.WebApi.Extensions;
 
@@ -45,11 +47,9 @@ public static class ServiceExtensions
 
         // Caching in Redis
         services.AddSingleton<ICacheService, CacheService>();
-        services.AddSingleton<IRedisCacheService, CacheService>();
-        services.AddSingleton(typeof(IWideMemento), typeof(Memento));
-        services.AddSingleton(typeof(IMementoService<>), typeof(MementoService<>));
-        services.AddSingleton(typeof(IStorage), typeof(Storage));
-        //services.AddSingleton(typeof(INarrowMemento), typeof(Memento<>));
+
+        // Draft storage service
+        services.AddSingleton(typeof(IDraftStorageService<>), typeof(DraftStorageService<>));
     }
 
     public static void ConfigureCors(this IServiceCollection services)
