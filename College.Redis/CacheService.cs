@@ -106,7 +106,6 @@ public class CacheService : ICacheService, IDisposable
         });
     }
 
-
     public void Dispose()
     {
         Dispose(true);
