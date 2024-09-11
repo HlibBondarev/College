@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using System.Text.Json;
-using Assert = NUnit.Framework.Assert;
 
 namespace College.XUnitTest.Services.DraftStorage;
 
@@ -162,9 +161,10 @@ public class DraftStorageServiceTests
         cacheServiceMock.Setup(c => c.ReadAsync(It.IsAny<string>()))
             .Returns(() => Task.FromResult(expected["ExpectedKey"]));
 
-        // Act && Assert
-        Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await draftStorageService.RemoveAsync("ExpectedKey").ConfigureAwait(false));
+        // Act
+        await draftStorageService.RemoveAsync("ExpectedKey").ConfigureAwait(false);
+
+        // Assert
         cacheServiceMock.Verify(
             c => c.ReadAsync(It.IsAny<string>()),
             Times.Once);

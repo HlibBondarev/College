@@ -70,8 +70,8 @@ public class DraftStorageService<T> : IDraftStorageService<T>
 
         if (valueToRemove == null)
         {
-            logger.LogError($"The {typeof(T)} draft with key = {draftKey} was not found in the cache.");
-            throw new InvalidOperationException($"The {typeof(T).Name} draft with key = {draftKey} was not found in the cache.");
+            logger.LogInformation($"The {typeof(T)} draft with key = {draftKey} was not found in the cache.");
+            return;
         }
 
         logger.LogInformation($"Start removing the {typeof(T).Name} draft with key = {draftKey} from cache.");
