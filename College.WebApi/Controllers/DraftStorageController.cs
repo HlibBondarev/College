@@ -11,7 +11,7 @@ public class DraftStorageController<T> : ControllerBase
 {
     private readonly IDraftStorageService<T> draftStorageService;
 
-    /// <summary>Initializes a new instance of the <see cref="IDraftStorageService{T}" /> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="DraftStorageController{T}" /> class.</summary>
     /// <param name="mementoService">The draft storage service.</param>
     protected DraftStorageController(IDraftStorageService<T> draftStorageService)
     {
@@ -57,6 +57,6 @@ public class DraftStorageController<T> : ControllerBase
         var userId = GettingUserProperties.GetUserId(User);
         await draftStorageService.RemoveAsync(userId).ConfigureAwait(false);
 
-        return Ok($"{typeof(T).Name} for User with Id = {userId} has been removed");
+        return NoContent();
     }
 }
