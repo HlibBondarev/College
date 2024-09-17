@@ -65,14 +65,14 @@ public class CreateStudentHandler : IRequestHandler<CreateStudentCommand, Result
         return Result.Ok(_mapper.Map<CreateStudentResponseDto>(studentToCreate));
     }
 
-    private bool AreCoursesTheSameAsync(CreateStudentRequestDto request)
+    private static bool AreCoursesTheSameAsync(CreateStudentRequestDto request)
     {
         return request.StudentCourses.Distinct().Count() != request.StudentCourses.Count;
     }
 
     private Result<CreateStudentResponseDto> CoursesAreTheSameError(CreateStudentRequestDto request)
     {
-        string errorMsg = string.Format("Two or more courses passed in the request are the same.");
+        string errorMsg = "Two or more courses passed in the request are the same.";
         _logger.LogError(request, errorMsg);
         return Result.Fail(errorMsg);
     }
@@ -85,7 +85,7 @@ public class CreateStudentHandler : IRequestHandler<CreateStudentCommand, Result
 
     private Result<CreateStudentResponseDto> CoursesNotExistedError(CreateStudentRequestDto request)
     {
-        string errorMsg = string.Format("The courses passed in the request do not exist.");
+        string errorMsg = "The courses passed in the request do not exist.";
         _logger.LogError(request, errorMsg);
         return Result.Fail(errorMsg);
     }

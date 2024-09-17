@@ -90,14 +90,14 @@ public sealed class CreateCourseHandler : IRequestHandler<CreateCourseCommand, R
         return Result.Fail(errorMsg);
     }
 
-    private bool AreStudentsTheSameAsync(CreateCourseRequestDto request)
+    private static bool AreStudentsTheSameAsync(CreateCourseRequestDto request)
     {
         return request.CourseStudents.Distinct().Count() != request.CourseStudents.Count;
     }
 
     private Result<CreateCourseResponseDto> StudentsAreTheSameError(CreateCourseRequestDto request)
     {
-        string errorMsg = string.Format("Two or more students passed in the request are the same.");
+        string errorMsg = "Two or more students passed in the request are the same.";
         _logger.LogError(request, errorMsg);
         return Result.Fail(errorMsg);
     }
@@ -110,7 +110,7 @@ public sealed class CreateCourseHandler : IRequestHandler<CreateCourseCommand, R
 
     private Result<CreateCourseResponseDto> StudentsNotExistedError(CreateCourseRequestDto request)
     {
-        string errorMsg = string.Format("The students passed in the request do not exist.");
+        string errorMsg = "The students passed in the request do not exist.";
         _logger.LogError(request, errorMsg);
         return Result.Fail(errorMsg);
     }
