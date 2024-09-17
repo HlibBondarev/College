@@ -78,7 +78,7 @@ public sealed class UpdateCourseHandler : IRequestHandler<UpdateCourseCommand, R
         {
             if (oldStudents.FirstOrDefault(sc => sc.StudentId == newStudentId) == null)
             {
-                _repositoryWrapper.StudentCourseRepository.Create(
+                await _repositoryWrapper.StudentCourseRepository.CreateAsync(
                     new StudentCourse() { StudentId = newStudentId, CourseId = courseToUpdate.Id });
             }
         }
