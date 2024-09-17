@@ -44,8 +44,7 @@ public sealed class CreateCourseHandler : IRequestHandler<CreateCourseCommand, R
         }
 
         var courseToCreate = _mapper.Map<CourseEntity>(request);
-        courseToCreate = _repositoryWrapper.CoursesRepository.Create(courseToCreate);
-        courseToCreate.Students.Clear();
+        courseToCreate = await _repositoryWrapper.CoursesRepository.CreateAsync(courseToCreate);
         bool resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
 
         if (!resultIsSuccess)

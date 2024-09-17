@@ -39,11 +39,9 @@ public class CreateStudentHandler : IRequestHandler<CreateStudentCommand, Result
         }
 
         var studentToCreate = _mapper.Map<StudentEntity>(request);
-        studentToCreate = _repositoryWrapper.StudentsRepository.Create(studentToCreate);
-
-        studentToCreate.Courses.Clear();
-
+        studentToCreate = await _repositoryWrapper.StudentsRepository.CreateAsync(studentToCreate);
         bool resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
+
         if (!resultIsSuccess)
         {
             return FailedToCreateStudentError(request);
