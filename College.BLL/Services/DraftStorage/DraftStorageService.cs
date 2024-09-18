@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using College.BLL.Services.DraftStorage.Interfaces;
 using College.Redis.Interfaces;
+using College.BLL.Common.Extensions;
 
 namespace College.BLL.Services.DraftStorage;
 
@@ -35,7 +36,7 @@ public class DraftStorageService<T> : IDraftStorageService<T>
 
         var draftValue = await cacheService.ReadAsync(GetKey(key)).ConfigureAwait(false);
 
-        if (draftValue is null)
+        if (draftValue.IsNullOrEmpty())
         {
             logger.LogInformation("The {EntityType} draft for User with key = {Key} was not found in the cache.", typeof(T).Name, key);
             return default;
@@ -68,7 +69,7 @@ public class DraftStorageService<T> : IDraftStorageService<T>
         var draftKey = GetKey(key);
         var valueToRemove = await cacheService.ReadAsync(draftKey);
 
-        if (valueToRemove == null)
+        if (valueToRemove.IsNullOrEmpty())
         {
             logger.LogInformation("The {EntityType} draft with key = {DraftKey} was not found in the cache.", typeof(T).Name, draftKey);
             return;
