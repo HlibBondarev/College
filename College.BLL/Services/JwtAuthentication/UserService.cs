@@ -20,7 +20,7 @@ public class UserService : IUserService
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly JWT _jwt;
+    private readonly Jwt _jwt;
     private readonly Authentication _authentication;
     private readonly ILoggerService _logger;
     private readonly IValidator<RegisterModel> _registerModelValidator;
@@ -30,7 +30,7 @@ public class UserService : IUserService
     public UserService(IRepositoryWrapper repositoryWrapper,
                        UserManager<ApplicationUser> userManager,
                        RoleManager<IdentityRole> roleManager,
-                       IOptions<JWT> jwt,
+                       IOptions<Jwt> jwt,
                        IOptions<Authentication> authentication,
                        ILoggerService logger,
                        IValidator<RegisterModel> registerModelValidator,
