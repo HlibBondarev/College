@@ -20,9 +20,9 @@ public abstract class JsonCreationConverter<T> : JsonConverter
         }
 
         JObject jObject = JObject.Load(reader);
-        T target = Create(objectType, jObject);
+        T? target = Create(objectType, jObject);
 
-        if (target == null) 
+        if (target is null)
         {
             return null;
         }
