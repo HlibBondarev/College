@@ -27,6 +27,9 @@ namespace College.WebApi.Extensions;
 
 public static class ServiceExtensions
 {
+    private const string TOKENVALIDATIONPARAMETERS = "TokenValidationParameters";
+    private const string JWT = "JWT";
+
     public static void AddCustomServices(this IServiceCollection services, IHostEnvironment hostEnvironment)
     {
         var currentAssemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -113,13 +116,9 @@ public static class ServiceExtensions
                 options.ConnectionFactory = async writer =>
                 {
                     var connection = await ConnectionMultiplexer.ConnectAsync(options.Configuration, writer);
-                    //connection.UseElasticApm();
                     return connection;
                 };
             });
-
-            // TODO: Try to rework or remove if chat will stop working correctly
-            //services.AddSingleton(typeof(HubLifetimeManager<>), typeof(LocalDistributedHubLifetimeManager<>));
         }
 
         services.AddStackExchangeRedisCache(options =>
@@ -166,7 +165,7 @@ public static class ServiceExtensions
     {
         services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<CollegeDbContext>();
 
-        services.Configure<JWT>(configuration.GetSection("JWT"));
+        services.Configure<Jwt>(configuration.GetSection("JWT"));
         services.Configure<Authentication>(configuration.GetSection("Authentication"));
 
         services.AddAuthentication(opt =>
@@ -178,13 +177,13 @@ public static class ServiceExtensions
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = configuration.GetSection("TokenValidationParameters").GetValue<bool>("ValidateIssuer"),
-            ValidateAudience = configuration.GetSection("TokenValidationParameters").GetValue<bool>("ValidateAudience"),
-            ValidateLifetime = configuration.GetSection("TokenValidationParameters").GetValue<bool>("ValidateLifetime"),
-            ValidateIssuerSigningKey = configuration.GetSection("TokenValidationParameters").GetValue<bool>("ValidateIssuerSigningKey"),
+            ValidateIssuer = configuration.GetSection(TOKENVALIDATIONPARAMETERS).GetValue<bool>("ValidateIssuer"),
+            ValidateAudience = configuration.GetSection(TOKENVALIDATIONPARAMETERS).GetValue<bool>("ValidateAudience"),
+            ValidateLifetime = configuration.GetSection(TOKENVALIDATIONPARAMETERS).GetValue<bool>("ValidateLifetime"),
+            ValidateIssuerSigningKey = configuration.GetSection(TOKENVALIDATIONPARAMETERS).GetValue<bool>("ValidateIssuerSigningKey"),
 
-            ValidIssuer = configuration.GetSection("JWT").GetValue<string>("Issuer"),
-            ValidAudience = configuration.GetSection("JWT").GetValue<string>("Audience"),
+            ValidIssuer = configuration.GetSection(JWT).GetValue<string>("Issuer"),
+            ValidAudience = configuration.GetSection(JWT).GetValue<string>("Audience"),
 
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetSection("JWT").GetValue<string>("Key")!))
         };

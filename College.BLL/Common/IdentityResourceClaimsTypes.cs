@@ -8,19 +8,16 @@ public static class IdentityResourceClaimsTypes
     /// <summary>
     /// Contains the 'uid' name.
     /// </summary>
-    // TODO: find more meaningful name.
     public const string Uid = "uid";
 
     /// <summary>
     /// Contains the 'sub' name.
     /// </summary>
-    // TODO: find more meaningful name.
     public const string Sub = "sub";
 
     /// <summary>
     /// Contains the 'role' name.
     /// </summary>
-    // TODO: find more meaningful name.
     public const string Role = "role";
 
     /// <summary>

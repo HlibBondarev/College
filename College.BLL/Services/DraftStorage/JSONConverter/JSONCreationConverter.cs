@@ -9,7 +9,7 @@ public abstract class JsonCreationConverter<T> : JsonConverter
 
     public override bool CanConvert(Type objectType) => typeof(T).IsAssignableFrom(objectType);
 
-    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
     {
         ArgumentNullException.ThrowIfNull(reader);
         ArgumentNullException.ThrowIfNull(serializer);
@@ -20,13 +20,19 @@ public abstract class JsonCreationConverter<T> : JsonConverter
         }
 
         JObject jObject = JObject.Load(reader);
-        T target = Create(objectType, jObject);
+        T? target = Create(objectType, jObject);
+
+        if (target is null)
+        {
+            return null;
+        }
+
         serializer.Populate(jObject.CreateReader(), target);
 
         return target;
     }
 
-    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
     {
         throw new NotImplementedException();
     }

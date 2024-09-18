@@ -1,5 +1,4 @@
-﻿//a.HasKey("ApplicationUserId", "Created");
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using College.DAL.Entities;
 using College.DAL.Entities.JwtAuthentication;

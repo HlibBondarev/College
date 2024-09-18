@@ -9,20 +9,20 @@ public class RedisConfig
     public bool Enabled { get; set; }
 
     [Required]
-    public string Server { get; set; }
+    public required string Server { get; set; }
 
     [Required]
     [DataType(DataType.Password)]
-    public string Password { get; set; }
+    public required string Password { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Port must be greater then 0.")]
     public int Port { get; set; }
 
     [Required]
-    public TimeSpan AbsoluteExpirationRelativeToNowInterval { get; set; }
+    public required TimeSpan AbsoluteExpirationRelativeToNowInterval { get; set; }
 
     [Required]
-    public TimeSpan SlidingExpirationInterval { get; set; }
+    public required TimeSpan SlidingExpirationInterval { get; set; }
 
     [Required]
     public TimeSpan CheckAlivePollingInterval { get; set; }
