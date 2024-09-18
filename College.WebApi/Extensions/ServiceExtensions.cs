@@ -118,7 +118,7 @@ public static class ServiceExtensions
                 };
             });
 
-            // TODO: Try to rework or remove if chat will stop working correctly
+            // Try to rework or remove if chat will stop working correctly
             //services.AddSingleton(typeof(HubLifetimeManager<>), typeof(LocalDistributedHubLifetimeManager<>));
         }
 
