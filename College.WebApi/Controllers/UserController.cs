@@ -53,7 +53,7 @@ public class UserController : BaseApiController
     public async Task<IActionResult> GetRefreshTokensAsync(string id)
     {
         var user = await _userService.GetById(id);
-        return Ok(user.RefreshTokens);
+        return Ok(user?.RefreshTokens);
     }
 
     [HttpPost]
@@ -79,6 +79,7 @@ public class UserController : BaseApiController
         {
             HttpOnly = true,
             Expires = DateTime.UtcNow.AddDays(10),
+            Secure = true
         };
         Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
     }
