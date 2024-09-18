@@ -11,7 +11,7 @@ public class CacheService : ICacheService, IDisposable
 {
     private readonly ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
     private readonly IDistributedCache cache;
-    private readonly RedisConfig redisConfig;
+    private readonly RedisConfig? redisConfig;
 
     private bool isWorking = true;
     private readonly bool isEnabled = false;

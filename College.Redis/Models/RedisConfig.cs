@@ -9,11 +9,11 @@ public class RedisConfig
     public bool Enabled { get; set; }
 
     [Required]
-    public string Server { get; set; }
+    public required string Server { get; set; }
 
     [Required]
     [DataType(DataType.Password)]
-    public string Password { get; set; }
+    public required string Password { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Port must be greater then 0.")]
     public int Port { get; set; }
