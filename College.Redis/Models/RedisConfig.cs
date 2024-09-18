@@ -19,10 +19,10 @@ public class RedisConfig
     public int Port { get; set; }
 
     [Required]
-    public TimeSpan AbsoluteExpirationRelativeToNowInterval { get; set; }
+    public required TimeSpan AbsoluteExpirationRelativeToNowInterval { get; set; }
 
     [Required]
-    public TimeSpan SlidingExpirationInterval { get; set; }
+    public required TimeSpan SlidingExpirationInterval { get; set; }
 
     [Required]
     public TimeSpan CheckAlivePollingInterval { get; set; }

@@ -93,8 +93,8 @@ public class CacheService : ICacheService, IDisposable
             {
                 var options = new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = absoluteExpirationRelativeToNowInterval ?? redisConfig.AbsoluteExpirationRelativeToNowInterval,
-                    SlidingExpiration = slidingExpirationInterval ?? redisConfig.SlidingExpirationInterval,
+                    AbsoluteExpirationRelativeToNow = absoluteExpirationRelativeToNowInterval ?? redisConfig!.AbsoluteExpirationRelativeToNowInterval,
+                    SlidingExpiration = slidingExpirationInterval ?? redisConfig!.SlidingExpirationInterval,
                 };
 
                 cache.SetString(key, value, options);
@@ -139,7 +139,7 @@ public class CacheService : ICacheService, IDisposable
                     }
                     catch (RedisConnectionException)
                     {
-                        await Task.Delay(redisConfig.CheckAlivePollingInterval);
+                        await Task.Delay(redisConfig!.CheckAlivePollingInterval);
                     }
                 }
             }
