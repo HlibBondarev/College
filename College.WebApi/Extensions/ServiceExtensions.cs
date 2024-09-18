@@ -29,6 +29,7 @@ public static class ServiceExtensions
 {
     private const string TOKENVALIDATIONPARAMETERS = "TokenValidationParameters";
     private const string JWT = "JWT";
+
     public static void AddCustomServices(this IServiceCollection services, IHostEnvironment hostEnvironment)
     {
         var currentAssemblies = AppDomain.CurrentDomain.GetAssemblies();
