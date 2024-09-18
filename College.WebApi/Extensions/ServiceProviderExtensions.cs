@@ -50,8 +50,8 @@ public static class ServiceProviderExtensions
             if (userName is null)
             {
                 string errorMsg = "The Email parameter in the Authentication.Admin section of the appsettings.json (or secret.json) file is not filled in.";
-                logger.LogError(errorMsg);
-                throw new NullReferenceException(errorMsg);
+                logger.LogError("The Email parameter in the Authentication.Admin section of the appsettings.json (or secret.json) file is not filled in.");
+                throw new InvalidOperationException(errorMsg);
             }
 
             var existingUser = await userManager.FindByNameAsync(userName);
