@@ -21,7 +21,6 @@ public class UserService : IUserService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly Jwt _jwt;
     private readonly Authentication _authentication;
-    private readonly ILoggerService _logger;
     private readonly IValidator<RegisterModel> _registerModelValidator;
     private readonly IValidator<TokenRequestModel> _tokenRequestModelValidator;
     private readonly IValidator<AddRoleModel> _addRoleModelValidator;
@@ -31,7 +30,6 @@ public class UserService : IUserService
                        RoleManager<IdentityRole> roleManager,
                        IOptions<Jwt> jwt,
                        IOptions<Authentication> authentication,
-                       ILoggerService logger,
                        IValidator<RegisterModel> registerModelValidator,
                        IValidator<TokenRequestModel> tokenRequestModelValidator,
                        IValidator<AddRoleModel> addRoleModelValidator)
@@ -40,7 +38,6 @@ public class UserService : IUserService
         _userManager = userManager;
         _jwt = jwt.Value;
         _authentication = authentication.Value;
-        _logger = logger;
         _registerModelValidator = registerModelValidator;
         _tokenRequestModelValidator = tokenRequestModelValidator;
         _addRoleModelValidator = addRoleModelValidator;
@@ -72,7 +69,6 @@ public class UserService : IUserService
         }
         else
         {
-            _logger.LogInformation(string.Format("Email {0} is already registered.", user.Email));
             return $"Email {user.Email} is already registered.";
         }
     }
@@ -140,7 +136,7 @@ public class UserService : IUserService
 
             if (roleExists)
             {
-                var validRole = _authentication.Roles.FirstOrDefault(x => x.Equals(model.Role, StringComparison.OrdinalIgnoreCase));
+                var validRole = _authentication.Roles.Find(x => x.Equals(model.Role, StringComparison.OrdinalIgnoreCase));
                 await _userManager.AddToRoleAsync(user, validRole!);
                 return $"Added {model.Role} role to user {model.Email}.";
             }
