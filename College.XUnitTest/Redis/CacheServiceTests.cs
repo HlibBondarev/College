@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using College.Redis;
-using College.Redis.Interfaces;
 using College.Redis.Models;
 
 namespace College.XUnitTest.Redis;
