@@ -27,7 +27,6 @@ public class UserService : IUserService
 
     public UserService(IRepositoryWrapper repositoryWrapper,
                        UserManager<ApplicationUser> userManager,
-                       RoleManager<IdentityRole> roleManager,
                        IOptions<Jwt> jwt,
                        IOptions<Authentication> authentication,
                        IValidator<RegisterModel> registerModelValidator,
