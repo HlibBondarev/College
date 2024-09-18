@@ -21,16 +21,9 @@ public static class ClaimsPrincipalExtentions
     /// </exception>
     public static string GetUserPropertyByClaimType(this ClaimsPrincipal principal, string identityResourceClaim)
     {
-        if (principal == null)
-        {
-            throw new ArgumentNullException(nameof(principal));
-        }
+        ArgumentNullException.ThrowIfNull(principal);
+        ArgumentNullException.ThrowIfNull(identityResourceClaim);
 
-        if (string.IsNullOrEmpty(identityResourceClaim))
-        {
-            throw new ArgumentNullException(nameof(identityResourceClaim));
-        }
-
-        return principal.FindFirst(identityResourceClaim)?.Value;
+        return principal.FindFirst(identityResourceClaim)?.Value?? string.Empty;
     }
 }
