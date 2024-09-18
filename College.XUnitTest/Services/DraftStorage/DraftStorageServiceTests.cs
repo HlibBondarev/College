@@ -1,13 +1,13 @@
-﻿using Bogus;
+﻿using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Bogus;
+using FluentAssertions;
+using Moq;
+using NUnit.Framework;
 using College.BLL.DTO.Teachers.Drafts;
 using College.BLL.Services.DraftStorage;
 using College.BLL.Services.DraftStorage.Interfaces;
 using College.Redis.Interfaces;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using Moq;
-using NUnit.Framework;
-using System.Text.Json;
 
 namespace College.XUnitTest.Services.DraftStorage;
 
