@@ -6,7 +6,6 @@ using Moq;
 using NUnit.Framework;
 using College.BLL.DTO.Teachers.Drafts;
 using College.BLL.Services.DraftStorage;
-using College.BLL.Services.DraftStorage.Interfaces;
 using College.Redis.Interfaces;
 
 namespace College.XUnitTest.Services.DraftStorage;
@@ -21,7 +20,7 @@ public class DraftStorageServiceTests
 
     private Mock<ICacheService>? cacheServiceMock;
     private Mock<ILogger<DraftStorageService<TeacherWithNameDto>>>? loggerMock;
-    private IDraftStorageService<TeacherWithNameDto>? draftStorageService;
+    private DraftStorageService<TeacherWithNameDto>? draftStorageService;
 
     [SetUp]
     public void SetUp()

@@ -20,7 +20,7 @@ public class CacheServiceTests
     private string expectedKey = string.Empty;
     private Mock<IDistributedCache>? distributedCacheMock;
     private Mock<IOptions<RedisConfig>>? redisConfigMock;
-    private ICacheService? cacheService;
+    private CacheService? cacheService;
 
     [SetUp]
     public void SetUp()
