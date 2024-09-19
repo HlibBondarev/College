@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Bogus;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -8,7 +9,6 @@ using College.BLL.Common;
 using College.BLL.DTO.Teachers.Drafts;
 using College.BLL.Services.DraftStorage.Interfaces;
 using College.WebApi.Controllers;
-using FluentAssertions;
 
 namespace College.XUnitTest.Controllers;
 
