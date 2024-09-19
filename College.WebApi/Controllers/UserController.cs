@@ -40,12 +40,14 @@ public class UserController : BaseApiController
     }
 
     [HttpPost]
+    [AllowAnonymous]
     public async Task<IActionResult> RefreshTokenAsync()
     {
         var refreshToken = Request.Cookies["refreshToken"];
         var response = await _userService.RefreshTokenAsync(refreshToken!);
         if (!string.IsNullOrEmpty(response.RefreshToken))
             SetRefreshTokenInCookie(response.RefreshToken);
+        var temp = Ok(response);
         return Ok(response);
     }
 
