@@ -1,11 +1,11 @@
-﻿using FluentValidation;
-using MediatR;
+﻿using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
+using FluentValidation;
+using MediatR;
 using StackExchange.Redis;
 using College.BLL.Behaviors;
 using College.BLL.Interfaces;
@@ -28,7 +28,6 @@ namespace College.WebApi.Extensions;
 public static class ServiceExtensions
 {
     private const string TOKENVALIDATIONPARAMETERS = "TokenValidationParameters";
-    private const string JWT = "JWT";
 
     public static void AddCustomServices(this IServiceCollection services, IHostEnvironment hostEnvironment)
     {
@@ -165,8 +164,8 @@ public static class ServiceExtensions
     {
         services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<CollegeDbContext>();
 
-        services.Configure<Jwt>(configuration.GetSection("JWT"));
-        services.Configure<Authentication>(configuration.GetSection("Authentication"));
+        services.Configure<JwtConfig>(configuration.GetSection(JwtConfig.Name));
+        services.Configure<AuthenticationConfig>(configuration.GetSection(AuthenticationConfig.Name));
 
         services.AddAuthentication(opt =>
         {
@@ -182,10 +181,10 @@ public static class ServiceExtensions
             ValidateLifetime = configuration.GetSection(TOKENVALIDATIONPARAMETERS).GetValue<bool>("ValidateLifetime"),
             ValidateIssuerSigningKey = configuration.GetSection(TOKENVALIDATIONPARAMETERS).GetValue<bool>("ValidateIssuerSigningKey"),
 
-            ValidIssuer = configuration.GetSection(JWT).GetValue<string>("Issuer"),
-            ValidAudience = configuration.GetSection(JWT).GetValue<string>("Audience"),
+            ValidIssuer = configuration.GetSection(JwtConfig.Name).GetValue<string>("Issuer"),
+            ValidAudience = configuration.GetSection(JwtConfig.Name).GetValue<string>("Audience"),
 
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetSection("JWT").GetValue<string>("Key")!))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetSection(JwtConfig.Name).GetValue<string>("Key")!))
         };
     });
     }

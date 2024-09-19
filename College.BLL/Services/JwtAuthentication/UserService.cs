@@ -19,16 +19,16 @@ public class UserService : IUserService
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly Jwt _jwt;
-    private readonly Authentication _authentication;
+    private readonly JwtConfig _jwt;
+    private readonly AuthenticationConfig _authentication;
     private readonly IValidator<RegisterModel> _registerModelValidator;
     private readonly IValidator<TokenRequestModel> _tokenRequestModelValidator;
     private readonly IValidator<AddRoleModel> _addRoleModelValidator;
 
     public UserService(IRepositoryWrapper repositoryWrapper,
                        UserManager<ApplicationUser> userManager,
-                       IOptions<Jwt> jwt,
-                       IOptions<Authentication> authentication,
+                       IOptions<JwtConfig> jwt,
+                       IOptions<AuthenticationConfig> authentication,
                        IValidator<RegisterModel> registerModelValidator,
                        IValidator<TokenRequestModel> tokenRequestModelValidator,
                        IValidator<AddRoleModel> addRoleModelValidator)
