@@ -164,8 +164,15 @@ public static class ServiceExtensions
     {
         services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<CollegeDbContext>();
 
-        services.Configure<JwtConfig>(configuration.GetSection(JwtConfig.Name));
-        services.Configure<AuthenticationConfig>(configuration.GetSection(AuthenticationConfig.Name));
+        // JWT options
+        services.AddOptions<JwtConfig>()
+            .Bind(configuration.GetSection(JwtConfig.Name))
+            .ValidateDataAnnotations();
+
+        // Authentication options
+        services.AddOptions<AuthenticationConfig>()
+            .Bind(configuration.GetSection(AuthenticationConfig.Name))
+            .ValidateDataAnnotations();
 
         services.AddAuthentication(opt =>
         {
