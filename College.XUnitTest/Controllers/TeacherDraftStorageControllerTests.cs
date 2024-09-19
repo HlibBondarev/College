@@ -125,7 +125,7 @@ public class TeacherDraftStorageControllerTests
         draftStorageService?.VerifyAll();
     }
 
-    private TeacherWithNameDto GetTeacherWithNameDtoDraft()
+    private static TeacherWithNameDto GetTeacherWithNameDtoDraft()
     {
         var teacherFacker = new Faker<TeacherWithNameDto>()
             .RuleFor(t => t.Name, f => f.Name.LastName());
