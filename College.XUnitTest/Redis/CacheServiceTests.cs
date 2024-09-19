@@ -1,30 +1,37 @@
 ﻿using System.Text;
+using Bogus;
+using FluentAssertions;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using FluentAssertions;
 using Moq;
-using Newtonsoft.Json;
 using NUnit.Framework;
-using College.Redis.Interfaces;
-using College.Redis.Models;
 using College.Redis;
+using College.Redis.Models;
 
 namespace College.XUnitTest.Redis;
 
 [TestFixture]
 public class CacheServiceTests
 {
-    private Mock<IDistributedCache> distributedCacheMock;
-    private Mock<IOptions<RedisConfig>> redisConfigMock;
-    private ICacheService cacheService;
+    private const int RANDOMSTRINGSIZE = 50;
+
+    private string expectedValue = string.Empty;
+    private string expectedKey = string.Empty;
+    private Mock<IDistributedCache>? distributedCacheMock;
+    private Mock<IOptions<RedisConfig>>? redisConfigMock;
+    private CacheService? cacheService;
 
     [SetUp]
     public void SetUp()
     {
+        expectedValue = new string(new Faker().Random.Chars(min: (char)0, max: (char)127, count: RANDOMSTRINGSIZE));
+        expectedKey = new string(new Faker().Random.Chars(min: (char)0, max: (char)127, count: RANDOMSTRINGSIZE));
         distributedCacheMock = new Mock<IDistributedCache>();
         redisConfigMock = new Mock<IOptions<RedisConfig>>();
         redisConfigMock.Setup(c => c.Value).Returns(new RedisConfig
         {
+            Server = "server",
+            Password = "password",
             Enabled = true,
             AbsoluteExpirationRelativeToNowInterval = TimeSpan.FromMinutes(1),
             SlidingExpirationInterval = TimeSpan.FromMinutes(1),
@@ -33,71 +40,63 @@ public class CacheServiceTests
     }
 
     [Test]
-    public async Task RemoveAsync_ShouldCallCacheRemoveOnce()
+    public async Task RemoveAsync_ShouldCallRemoveAsyncOnce()
     {
-        // Arrange & Act
-        await cacheService.RemoveAsync("Example");
+
+        // Arrange
+        distributedCacheMock!.Setup(c => c.Remove(expectedKey))
+            .Verifiable(Times.Once);
+
+        // Act
+        await cacheService!.RemoveAsync(expectedKey);
 
         // Assert
-        distributedCacheMock.Verify(
-            c => c.Remove("Example"),
-            Times.Once);
+        distributedCacheMock.VerifyAll();
     }
 
     [Test]
     public async Task ReadAsync_WhenDataExistsInCacheAndNotExpired_ShouldReturnData()
     {
         // Arrange
-        var expected = new Dictionary<string, string>()
-        {
-            {"ExpectedKey", "ExpectedValue"},
-        };
-        distributedCacheMock.Setup(c => c.Get(It.IsAny<string>()))
-            .Returns(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(expected)));
+        distributedCacheMock!.Setup(c => c.Get(expectedKey))
+            .Returns(Encoding.UTF8.GetBytes(expectedValue))
+            .Verifiable(Times.Once);
 
         // Act
-        var result = await cacheService.ReadAsync("ExpectedKey");
+        var result = await cacheService!.ReadAsync(expectedKey);
 
         // Assert
-        result.Should().Contain("ExpectedValue");
-        distributedCacheMock.Verify(
-            c => c.Get(It.IsAny<string>()),
-            Times.Once);
+        result.Should().Be(expectedValue);
+        distributedCacheMock.VerifyAll();
     }
 
     [Test]
     public async Task ReadAsync_WhenDataNotExistsOrExpired_ShouldReturnNull()
     {
         // Arrange
-        var expected = new Dictionary<string, string>()
-        {
-            {"ExpectedKey", null},
-        };
-        distributedCacheMock.Setup(c => c.Get(It.IsAny<string>()))
-            .Returns(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(expected)));
+        distributedCacheMock!.Setup(c => c.Get(expectedKey))
+            .Returns(Encoding.UTF8.GetBytes(string.Empty))
+            .Verifiable(Times.Once);
 
         // Act
-        var result = await cacheService.ReadAsync("ExpectedKey");
+        var result = await cacheService!.ReadAsync(expectedKey);
 
         // Assert
-        result.Should().Contain("{\"ExpectedKey\":null}");
-        distributedCacheMock.Verify(
-            c => c.Get(It.IsAny<string>()),
-            Times.Once);
+        result.Should().Be(string.Empty);
+        distributedCacheMock.VerifyAll();
     }
 
     [Test]
     public async Task WriteAsync_ShouldCallCacheSetOnce()
     {
-        // Arrange & Act
-        await cacheService.WriteAsync("ExpectedKey", "ExpectedValue");
+        // Arrange
+        distributedCacheMock!.Setup(c => c.Set(expectedKey, Encoding.UTF8.GetBytes(expectedValue), It.IsAny<DistributedCacheEntryOptions>()))
+            .Verifiable(Times.Once);
+
+        // Act
+        await cacheService!.WriteAsync(expectedKey, expectedValue);
 
         // Assert
-        distributedCacheMock.Verify(
-            c => c.Set(
-                It.IsAny<string>(),
-                It.IsAny<byte[]>(),
-                It.IsAny<DistributedCacheEntryOptions>()),
-            Times.Once);
+        distributedCacheMock.VerifyAll();
     }
 }

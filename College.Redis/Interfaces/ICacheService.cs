@@ -2,7 +2,7 @@
 
 public interface ICacheService
 {
-    Task<string?> ReadAsync(string key);
+    Task<string> ReadAsync(string key);
 
     Task WriteAsync(
         string key,

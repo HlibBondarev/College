@@ -1,27 +1,32 @@
-﻿using College.BLL.DTO.Teachers.Drafts;
-using College.BLL.Services.DraftStorage;
-using College.BLL.Services.DraftStorage.Interfaces;
-using College.Redis.Interfaces;
-using FluentAssertions;
+﻿using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Bogus;
+using FluentAssertions;
 using Moq;
 using NUnit.Framework;
-using System.Text.Json;
+using College.BLL.DTO.Teachers.Drafts;
+using College.BLL.Services.DraftStorage;
+using College.Redis.Interfaces;
 
 namespace College.XUnitTest.Services.DraftStorage;
 
 [TestFixture]
 public class DraftStorageServiceTests
 {
-    private readonly string jsonStringForTeacherWithDegreeDto = "{\"$type\":\"withDegree\",\"Name\":\"name1\",\"Degree\":\"degree1\"}";
+    private const int RANDOMSTRINGSIZE = 50;
 
-    private Mock<ICacheService> cacheServiceMock;
-    private Mock<ILogger<DraftStorageService<TeacherWithNameDto>>> loggerMock;
-    private IDraftStorageService<TeacherWithNameDto> draftStorageService;
+    private string key = string.Empty;
+    private string cacheKey = string.Empty;
+
+    private Mock<ICacheService>? cacheServiceMock;
+    private Mock<ILogger<DraftStorageService<TeacherWithNameDto>>>? loggerMock;
+    private DraftStorageService<TeacherWithNameDto>? draftStorageService;
 
     [SetUp]
     public void SetUp()
     {
+        key = new string(new Faker().Random.Chars(min: (char)0, max: (char)127, count: RANDOMSTRINGSIZE));
+        cacheKey = GetCacheKey(key, typeof(TeacherWithNameDto));
         cacheServiceMock = new Mock<ICacheService>();
         loggerMock = new Mock<ILogger<DraftStorageService<TeacherWithNameDto>>>();
         draftStorageService = new DraftStorageService<TeacherWithNameDto>(cacheServiceMock.Object, loggerMock.Object);
@@ -31,150 +36,127 @@ public class DraftStorageServiceTests
     public async Task RestoreAsync_WhenDraftExistsInCache_ShouldRestoreAppropriatedEntity()
     {
         // Arrange
-        var teacherDraft = new TeacherWithNameDto()
-        {
-            Name = "name"
-        };
-        var expected = new Dictionary<string, string>()
-            {
-                {"ExpectedKey", "{\"Name\":\"name\"}"},
-            };
-
-        cacheServiceMock.Setup(c => c.ReadAsync(It.IsAny<string>()))
-            .Returns(() => Task.FromResult(expected["ExpectedKey"]));
+        var teacherDraft = GetTeacherWithNameDto();
+        cacheServiceMock?.Setup(c => c.ReadAsync(cacheKey))
+            .Returns(() => Task.FromResult(JsonSerializer.Serialize(teacherDraft))!)
+            .Verifiable(Times.Once);
 
         // Act
-        var result = await draftStorageService.RestoreAsync("ExpectedKey").ConfigureAwait(false);
+        var result = await draftStorageService!.RestoreAsync(key).ConfigureAwait(false);
 
         // Assert
-        cacheServiceMock.Verify(
-            c => c.ReadAsync(It.IsAny<string>()),
-            Times.Once);
         result.Should().BeOfType<TeacherWithNameDto>();
-        result?.Name.Should().Be(teacherDraft.Name);
+        result!.Name.Should().Be(teacherDraft.Name);
+        cacheServiceMock?.VerifyAll();
     }
 
     [Test]
     public async Task RestoreAsync_WhenDraftIsTeacherWithDegreeDtoAndExistsInCache_ShouldRestoreAppropriatedEntity()
     {
-        var teacherDraft = FakeDraft(jsonStringForTeacherWithDegreeDto);
-
-        var expected = new Dictionary<string, string>()
-            {
-                {"ExpectedKey", jsonStringForTeacherWithDegreeDto },
-            };
-
-        cacheServiceMock.Setup(c => c.ReadAsync(It.IsAny<string>()))
-                .Returns(() => Task.FromResult(expected["ExpectedKey"]));
+        // Arrange
+        var teacherDraft = GetTeacherWithDegreeDto();
+        cacheServiceMock?.Setup(c => c.ReadAsync(cacheKey))
+            .Returns(() => Task.FromResult(JsonSerializer.Serialize(teacherDraft))!)
+            .Verifiable(Times.Once);
 
         // Act
-        var result = await draftStorageService.RestoreAsync("ExpectedKey").ConfigureAwait(false);
+        var result = await draftStorageService!.RestoreAsync(key).ConfigureAwait(false);
 
-        // Assert
-        cacheServiceMock.Verify(
-        c => c.ReadAsync(It.IsAny<string>()),
-        Times.Once);
-        result?.Name.Should().Be(teacherDraft.Name);
-        (result as TeacherWithDegreeDto)?.Degree.Should().Be((teacherDraft as TeacherWithDegreeDto)?.Degree);
+        // Assert      
+        result!.Name.Should().Be(teacherDraft.Name);
+        (result as TeacherWithDegreeDto)?.Degree.Should().Be(teacherDraft.Degree);
+        cacheServiceMock?.VerifyAll();
     }
 
     [Test]
     public async Task RestoreAsync_WhenDraftIsAbsentInCache_ShouldRestoreDefaultEntity()
     {
         // Arrange
-        var expected = new Dictionary<string, string>()
-            {
-                {"ExpectedKey", null},
-            };
-        cacheServiceMock.Setup(c => c.ReadAsync(It.IsAny<string>()))
-            .Returns(() => Task.FromResult(expected["ExpectedKey"]));
+        var teacherDraft = default(TeacherWithNameDto);
+        cacheServiceMock?.Setup(c => c.ReadAsync(cacheKey))
+            .Returns(() => Task.FromResult(JsonSerializer.Serialize(teacherDraft))!)
+            .Verifiable(Times.Once);
 
         // Act
-        var result = await draftStorageService.RestoreAsync("ExpectedKey").ConfigureAwait(false);
+        var result = await draftStorageService!.RestoreAsync(key).ConfigureAwait(false);
 
         // Assert
-        cacheServiceMock.Verify(
-            c => c.ReadAsync(It.IsAny<string>()),
-            Times.Once);
-        result.Should().BeNull();
+        result.Should().Be(teacherDraft);
+        cacheServiceMock?.VerifyAll();
     }
 
     [Test]
     public void CreateAsync_ShouldCallWriteAsyncOnce()
     {
         // Arrange
-        var teacherDraft = new TeacherWithNameDto()
-        {
-            Name = "name1"
-        };
-
-        cacheServiceMock.Setup(c => c.WriteAsync(
-            It.IsAny<string>(),
-            It.IsAny<string>(),
+        var teacherDraft = GetTeacherWithNameDto();
+        var teacherJsonString = JsonSerializer.Serialize(teacherDraft);
+        cacheServiceMock?.Setup(c => c.WriteAsync(
+            cacheKey,
+            teacherJsonString,
             null,
-            null));
+            null))
+            .Verifiable(Times.Once);
 
         // Act
-        var result = draftStorageService.CreateAsync("ExpectedKey", teacherDraft).ConfigureAwait(false);
+        var result = draftStorageService?.CreateAsync(key, teacherDraft).ConfigureAwait(false);
 
         // Assert
-        cacheServiceMock.Verify(
-            c => c.WriteAsync(
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            null,
-            null),
-            Times.Once);
+        cacheServiceMock?.VerifyAll();
     }
 
     [Test]
     public async Task RemoveAsync_WhenDataExistsInCache_ShouldCallRemoveAsyncOnce()
     {
         // Arrange
-        var expected = new Dictionary<string, string>()
-                {
-                    {"ExpectedKey", "ExpectedValue"},
-                };
-        cacheServiceMock.Setup(c => c.ReadAsync(It.IsAny<string>()))
-            .Returns(() => Task.FromResult(expected["ExpectedKey"]));
+        var teacherJsonString = JsonSerializer.Serialize(GetTeacherWithNameDto());
+        cacheServiceMock?.Setup(c => c.ReadAsync(cacheKey))
+            .Returns(() => Task.FromResult(teacherJsonString)!)
+            .Verifiable(Times.Once);
+        cacheServiceMock?.Setup(c => c.RemoveAsync(cacheKey))
+            .Returns(() => Task.FromResult(teacherJsonString))
+            .Verifiable(Times.Once);
 
         // Act
-        await draftStorageService.RemoveAsync("ExpectedKey").ConfigureAwait(false);
+        await draftStorageService!.RemoveAsync(key).ConfigureAwait(false);
 
         // Assert
-        cacheServiceMock.Verify(
-            c => c.ReadAsync(It.IsAny<string>()),
-            Times.Once);
-        cacheServiceMock.Verify(
-            c => c.RemoveAsync(It.IsAny<string>()),
-            Times.Once);
+        cacheServiceMock?.VerifyAll();
     }
 
     [Test]
     public async Task RemoveAsync_WhenDataIsAbsentInCache_ShouldCallRemoveAsyncNever()
     {
         // Arrange
-        var expected = new Dictionary<string, string>()
-                {
-                    {"ExpectedKey", null},
-                };
-        cacheServiceMock.Setup(c => c.ReadAsync(It.IsAny<string>()))
-            .Returns(() => Task.FromResult(expected["ExpectedKey"]));
+        cacheServiceMock?.Setup(c => c.ReadAsync(cacheKey))
+            .Returns(() => Task.FromResult(string.Empty)!).Verifiable(Times.Once);
+        cacheServiceMock?.Setup(c => c.RemoveAsync(cacheKey))
+            .Returns(() => Task.FromResult(string.Empty)).Verifiable(Times.Never);
 
         // Act
-        await draftStorageService.RemoveAsync("ExpectedKey").ConfigureAwait(false);
+        await draftStorageService!.RemoveAsync(key).ConfigureAwait(false);
 
         // Assert
-        cacheServiceMock.Verify(
-            c => c.ReadAsync(It.IsAny<string>()),
-            Times.Once);
-        cacheServiceMock.Verify(
-            c => c.RemoveAsync(It.IsAny<string>()),
-            Times.Never);
+        cacheServiceMock?.VerifyAll();
     }
 
-    private TeacherWithNameDto FakeDraft(string jsonString)
+    private static TeacherWithNameDto GetTeacherWithNameDto()
     {
-        return JsonSerializer.Deserialize<TeacherWithNameDto>(jsonString);
+        var teacherDraft = new Faker<TeacherWithNameDto>()
+            .RuleFor(t => t.Name, d => d.Name.LastName());
+        return teacherDraft.Generate();
+    }
+
+    private static TeacherWithDegreeDto GetTeacherWithDegreeDto()
+    {
+        var teacherDraft = new Faker<TeacherWithDegreeDto>()
+            .RuleFor(t => t.Name, d => d.Name.LastName())
+            .RuleFor(t => t.Degree, d => d.Name.JobTitle());
+        return teacherDraft.Generate();
+    }
+
+    private static string GetCacheKey(string key, Type type)
+    {
+        return $"{key}_{type.Name}";
     }
 }

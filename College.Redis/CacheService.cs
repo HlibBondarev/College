@@ -59,18 +59,18 @@ public class CacheService : ICacheService, IDisposable
             });
     }
 
-    public async Task<string?> ReadAsync(string key)
+    public async Task<string> ReadAsync(string key)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
 
-        string? returnValue = string.Empty;
+        string returnValue = string.Empty;
 
         await ExecuteRedisMethod(() =>
         {
             cacheLock.EnterReadLock();
             try
             {
-                returnValue = cache.GetString(key);
+                returnValue = cache.GetString(key) ?? string.Empty;
             }
             finally
             {
@@ -105,7 +105,6 @@ public class CacheService : ICacheService, IDisposable
             }
         });
     }
-
 
     public void Dispose()
     {
