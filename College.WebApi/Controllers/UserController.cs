@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using College.BLL.Interfaces;
 using College.BLL.Services.JwtAuthentication.Models;
-using Microsoft.AspNetCore.Authorization;
 
 namespace College.WebApi.Controllers;
 
@@ -36,6 +36,7 @@ public class UserController : BaseApiController
     public async Task<IActionResult> AddRoleAsync(AddRoleModel model)
     {
         var result = await _userService.AddRoleAsync(model);
+
         return Ok(result);
     }
 
@@ -47,7 +48,7 @@ public class UserController : BaseApiController
         var response = await _userService.RefreshTokenAsync(refreshToken!);
         if (!string.IsNullOrEmpty(response.RefreshToken))
             SetRefreshTokenInCookie(response.RefreshToken);
-        var temp = Ok(response);
+
         return Ok(response);
     }
 
@@ -55,6 +56,7 @@ public class UserController : BaseApiController
     public async Task<IActionResult> GetRefreshTokensAsync(string id)
     {
         var user = await _userService.GetById(id);
+
         return Ok(user?.RefreshTokens);
     }
 
