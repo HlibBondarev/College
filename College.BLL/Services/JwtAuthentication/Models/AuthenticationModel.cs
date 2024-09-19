@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json; 
 
 namespace College.BLL.Services.JwtAuthentication.Models;
 
