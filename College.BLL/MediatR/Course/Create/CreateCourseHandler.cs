@@ -26,25 +26,13 @@ public sealed class CreateCourseHandler : IRequestHandler<CreateCourseCommand, R
     {
         var request = command.Request;
 
-        using var transaction = _repositoryWrapper.BeginTransaction();
-
-        if (!await IsTeacherExistedtAsync(request.TeacherId))
+        if (!await IsTeacherExisedtAsync(request.TeacherId))
         {
             return TeacherNotFoundError(request);
         }
 
-        if (AreStudentsTheSameAsync(request))
-        {
-            return StudentsAreTheSameError(request);
-        }
-
-        if (!await AreStudentsExistedtAsync(request))
-        {
-            return StudentsNotExistedError(request);
-        }
-
         var courseToCreate = _mapper.Map<CourseEntity>(request);
-        courseToCreate = await _repositoryWrapper.CoursesRepository.CreateAsync(courseToCreate);
+        var newCourse = _repositoryWrapper.CoursesRepository.Create(courseToCreate);
         bool resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
 
         if (!resultIsSuccess)
@@ -52,25 +40,12 @@ public sealed class CreateCourseHandler : IRequestHandler<CreateCourseCommand, R
             return FailedToCreateCourseError(request);
         }
 
-        var students = await _repositoryWrapper.StudentsRepository.GetAllAsync(c => request.CourseStudents.Contains(c.Id));
+        var responseDto = _mapper.Map<CreateCourseResponseDto>(newCourse);
 
-        if (students.Any())
-        {
-            courseToCreate.Students.AddRange(students);
-            resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
-
-            if (!resultIsSuccess)
-            {
-                return FailedToCreateCourseError(request);
-            }
-        }
-
-        transaction.Complete();
-
-        return Result.Ok(_mapper.Map<CreateCourseResponseDto>(courseToCreate));
+        return Result.Ok(responseDto);
     }
 
-    private async Task<bool> IsTeacherExistedtAsync(Guid teacherId)
+    private async Task<bool> IsTeacherExisedtAsync(Guid teacherId)
     {
         var teacher = await _repositoryWrapper.TeachersRepository
             .GetFirstOrDefaultAsync(s => s.Id == teacherId);
@@ -87,31 +62,6 @@ public sealed class CreateCourseHandler : IRequestHandler<CreateCourseCommand, R
             typeof(TeacherEntity).Name);
         _logger.LogError(request, errorMsg);
 
-        return Result.Fail(errorMsg);
-    }
-
-    private static bool AreStudentsTheSameAsync(CreateCourseRequestDto request)
-    {
-        return request.CourseStudents.Distinct().Count() != request.CourseStudents.Count;
-    }
-
-    private Result<CreateCourseResponseDto> StudentsAreTheSameError(CreateCourseRequestDto request)
-    {
-        string errorMsg = "Two or more students passed in the request are the same.";
-        _logger.LogError(request, errorMsg);
-        return Result.Fail(errorMsg);
-    }
-
-    private async Task<bool> AreStudentsExistedtAsync(CreateCourseRequestDto request)
-    {
-        var students = await _repositoryWrapper.StudentsRepository.GetAllAsync(s => request.CourseStudents.Contains(s.Id));
-        return students.Count() == request.CourseStudents.Count;
-    }
-
-    private Result<CreateCourseResponseDto> StudentsNotExistedError(CreateCourseRequestDto request)
-    {
-        string errorMsg = "The students passed in the request do not exist.";
-        _logger.LogError(request, errorMsg);
         return Result.Fail(errorMsg);
     }
 

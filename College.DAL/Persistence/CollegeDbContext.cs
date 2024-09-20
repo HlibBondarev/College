@@ -1,13 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using College.DAL.Entities;
-using College.DAL.Entities.JwtAuthentication;
-
+﻿using College.DAL.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace College.DAL.Persistence;
 
-public class CollegeDbContext : IdentityDbContext<ApplicationUser>
+public class CollegeDbContext : DbContext
 {
+    public CollegeDbContext()
+    {
+    }
+
     public CollegeDbContext(DbContextOptions<CollegeDbContext> options)
         : base(options)
     {
@@ -17,7 +18,6 @@ public class CollegeDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Student>? Students { get; set; }
     public DbSet<StudentCourse>? StudentCourses { get; set; }
     public DbSet<Teacher>? Teachers { get; set; }
-    public DbSet<ApplicationUser>? ApplicationUser { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

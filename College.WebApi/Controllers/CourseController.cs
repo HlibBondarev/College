@@ -5,11 +5,9 @@ using College.BLL.MediatR.Course.Update;
 using College.BLL.MediatR.Course.Delete;
 using College.BLL.MediatR.Course.GetAll;
 using College.BLL.MediatR.Course.GetById;
-using Microsoft.AspNetCore.Authorization;
 
 namespace College.WebApi.Controllers;
 
-[Authorize]
 public class CourseController : BaseApiController
 {
     [HttpGet]
