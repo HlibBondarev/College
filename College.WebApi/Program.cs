@@ -1,6 +1,5 @@
 using Microsoft.Net.Http.Headers;
 using College.BLL.Exceptions;
-using College.BLL.Services.DraftStorage.JSONConverter;
 using College.WebApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,10 +17,6 @@ builder.Services.AddCustomServices(builder.Environment);
 builder.Services.AddControllers(options =>
 {
     options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("application/json"));
-})
-.AddNewtonsoftJson(options =>
-{
-    options.SerializerSettings.Converters.Add(new TeacherConverter());
 });
 
 builder.Services.AddEndpointsApiExplorer();
