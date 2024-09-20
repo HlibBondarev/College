@@ -33,15 +33,17 @@ public class CreateStudentHandler : IRequestHandler<CreateStudentCommand, Result
             return CoursesAreTheSameError(request);
         }
 
-        if (!await AreCoursesExistedtAsync(request))
+        if (!await AreCoursesExisedtAsync(request))
         {
             return CoursesNotExistedError(request);
         }
 
         var studentToCreate = _mapper.Map<StudentEntity>(request);
-        studentToCreate = await _repositoryWrapper.StudentsRepository.CreateAsync(studentToCreate);
-        bool resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
+        studentToCreate = _repositoryWrapper.StudentsRepository.Create(studentToCreate);
 
+        studentToCreate.Courses.Clear();
+
+        bool resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
         if (!resultIsSuccess)
         {
             return FailedToCreateStudentError(request);
@@ -53,7 +55,6 @@ public class CreateStudentHandler : IRequestHandler<CreateStudentCommand, Result
         {
             studentToCreate.Courses.AddRange(courses);
             resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
-
             if (!resultIsSuccess)
             {
                 return FailedToCreateStudentError(request);
@@ -65,19 +66,19 @@ public class CreateStudentHandler : IRequestHandler<CreateStudentCommand, Result
         return Result.Ok(_mapper.Map<CreateStudentResponseDto>(studentToCreate));
     }
 
-    private static bool AreCoursesTheSameAsync(CreateStudentRequestDto request)
+    private bool AreCoursesTheSameAsync(CreateStudentRequestDto request)
     {
         return request.StudentCourses.Distinct().Count() != request.StudentCourses.Count;
     }
 
     private Result<CreateStudentResponseDto> CoursesAreTheSameError(CreateStudentRequestDto request)
     {
-        string errorMsg = "Two or more courses passed in the request are the same.";
+        string errorMsg = string.Format("Two or more courses passed in the request are the same.");
         _logger.LogError(request, errorMsg);
         return Result.Fail(errorMsg);
     }
 
-    private async Task<bool> AreCoursesExistedtAsync(CreateStudentRequestDto request)
+    private async Task<bool> AreCoursesExisedtAsync(CreateStudentRequestDto request)
     {
         var courses = await _repositoryWrapper.CoursesRepository.GetAllAsync(c => request.StudentCourses.Contains(c.Id));
         return courses.Count() == request.StudentCourses.Count;
@@ -85,7 +86,7 @@ public class CreateStudentHandler : IRequestHandler<CreateStudentCommand, Result
 
     private Result<CreateStudentResponseDto> CoursesNotExistedError(CreateStudentRequestDto request)
     {
-        string errorMsg = "The courses passed in the request do not exist.";
+        string errorMsg = string.Format("The courses passed in the request do not exist.");
         _logger.LogError(request, errorMsg);
         return Result.Fail(errorMsg);
     }

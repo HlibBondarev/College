@@ -9,7 +9,7 @@ using College.BLL.DTO.Students;
 using College.BLL.MediatR.Student.Create;
 using System.Linq.Expressions;
 using StudentEntity = College.DAL.Entities.Student;
-using CourseEntity = College.DAL.Entities.Course;
+using CoursetEntity = College.DAL.Entities.Course;
 
 namespace College.XUnitTest.MediatRTests.Student;
 
@@ -81,7 +81,7 @@ public class CreateStudentHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldCallSaveChangesAsyncTwice_IfInputIsValid()
+    public async Task Handle_ShouldCallSaveChangesAsyncOnce_IfInputIsValid()
     {
         // Arrange
         var request = GetValidCreateStudentRequest();
@@ -93,7 +93,7 @@ public class CreateStudentHandlerTests
         await handler.Handle(command, _cancellationToken);
 
         // Assert
-        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Exactly(1));
     }
 
     [Fact]
@@ -125,21 +125,13 @@ public class CreateStudentHandlerTests
 
     private void SetupMock(CreateStudentRequestDto request, int saveChangesAsyncResult)
     {
-        var courseList = new List<CourseEntity>() 
-        { 
-            new CourseEntity() 
-            { 
-                Id = Guid.Empty, 
-                Name = "Title", 
-                Duration = 10 
-            } 
-        };
+        var courseList = new List<CoursetEntity>() { new CoursetEntity() { Id = Guid.Empty, Name = "Title", Duration = 10 } };
         var studentEntity = new StudentEntity
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
             DateOfBirth = DateTime.Now,
-            Courses = new List<CourseEntity>()
+            Courses = courseList
         };
 
         _mockRepositoryWrapper
@@ -147,12 +139,12 @@ public class CreateStudentHandlerTests
             .Returns(new System.Transactions.TransactionScope());
 
         _mockRepositoryWrapper
-            .Setup(r => r.CoursesRepository.GetAllAsync(It.IsAny<Expression<Func<CourseEntity, bool>>>(), null))
+            .Setup(r => r.CoursesRepository.GetAllAsync(It.IsAny<Expression<Func<CoursetEntity, bool>>>(), null))
             .ReturnsAsync(courseList);
 
         _mockRepositoryWrapper
-            .Setup(r => r.StudentsRepository.CreateAsync(It.IsAny<StudentEntity>()))
-            .ReturnsAsync(studentEntity);
+            .Setup(r => r.StudentsRepository.Create(It.IsAny<StudentEntity>()))
+            .Returns(studentEntity);
 
         _mockRepositoryWrapper
             .Setup(repo => repo.SaveChangesAsync())

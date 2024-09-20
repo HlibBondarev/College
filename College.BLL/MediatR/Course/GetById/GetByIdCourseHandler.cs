@@ -26,8 +26,8 @@ public class GetByIdCourseHandler : IRequestHandler<GetByIdCourseQuery, Result<G
     public async Task<Result<GetByIdCourseResponseDto>> Handle(GetByIdCourseQuery request, CancellationToken cancellationToken)
     {
         var course = await _repositoryWrapper.CoursesRepository.GetFirstOrDefaultAsync(
-            predicate: c => c.Id == request.Id,
-            include: qc => qc.Include(c => c.Teacher!));
+            predicate: t => t.Id == request.Id,
+            include: c => c.Include(c => c.Teacher!));
 
         if (course is null)
         {

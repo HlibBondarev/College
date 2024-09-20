@@ -1,14 +1,3 @@
 ﻿namespace College.BLL.DTO.Courses;
 
-public class UpdateCourseResponseDto
-{
-    public Guid Id { get; set; }
-
-    public string? Name { get; set; }
-
-    public int? Duration { get; set; }
-
-    public Guid TeacherId { get; set; }
-
-    public List<Guid>? CourseStudents { get; set; }
-}
+public sealed record UpdateCourseResponseDto(Guid Id, string? Name, int? Duration, Guid TeacherId);

@@ -24,8 +24,11 @@ public sealed class CreateTeacherHandler : IRequestHandler<CreateTeacherCommand,
     public async Task<Result<CreateTeacherResponseDto>> Handle(CreateTeacherCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;
+
         var teacherToCreate = _mapper.Map<TeacherEntity>(request);
-        var newTeacher = _repositoryWrapper.TeachersRepository.CreateAsync(teacherToCreate);
+
+        var newTeacher = _repositoryWrapper.TeachersRepository.Create(teacherToCreate);
+
         bool resultIsSuccess = await _repositoryWrapper.SaveChangesAsync() > 0;
 
         if (!resultIsSuccess)

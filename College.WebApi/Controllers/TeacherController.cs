@@ -1,19 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using College.BLL.DTO.Teachers;
 using College.BLL.MediatR.Teacher.Create;
 using College.BLL.MediatR.Teacher.Delete;
 using College.BLL.MediatR.Teacher.GetAll;
-using College.BLL.MediatR.Teacher.GetById;
 using College.BLL.MediatR.Teacher.Update;
+using College.BLL.MediatR.Teacher.GetById;
 
 namespace College.WebApi.Controllers;
 
-[Authorize]
 public class TeacherController : BaseApiController
 {
     [HttpGet]
-    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> GetAll()
     {
         return HandleResult(await Mediator.Send(new GetAllTeachersQuery()));

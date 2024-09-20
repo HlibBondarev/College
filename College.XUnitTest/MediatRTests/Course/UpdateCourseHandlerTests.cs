@@ -5,13 +5,12 @@ using Moq;
 using System.Linq.Expressions;
 using College.BLL.DTO.Courses;
 using College.BLL.Interfaces;
-using College.BLL.MediatR.Course.Update;
 using College.BLL.Resources.Errors;
-using College.DAL.Entities;
 using College.DAL.Repositories.Interfaces.Base;
+using College.BLL.MediatR.Course.Update;
 using CourseEntity = College.DAL.Entities.Course;
-using StudentEntity = College.DAL.Entities.Student;
 using TeacherEntity = College.DAL.Entities.Teacher;
+using College.BLL.MediatR.Student.Update;
 
 namespace College.XUnitTest.MediatRTests.Course;
 
@@ -83,7 +82,7 @@ public class UpdateCourseHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldCallSaveChangesAsyncTwice_IfInputIsValid()
+    public async Task Handle_ShouldCallSaveChangesAsyncOnce_IfInputIsValid()
     {
         // Arrange
         var request = GetValidUpdateCourseRequest();
@@ -95,7 +94,7 @@ public class UpdateCourseHandlerTests
         await handler.Handle(command, _cancellationToken);
 
         // Assert
-        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Exactly(1));
     }
 
     [Fact]
@@ -170,42 +169,19 @@ public class UpdateCourseHandlerTests
 
     private void SetupMock(UpdateCourseRequestDto request, int saveChangesAsyncResult)
     {
-        var studentList = new List<StudentEntity>()
-        {
-            new StudentEntity()
-            {
-                Id = Guid.Empty,
-                Name = "Name"
-            }
-        };
-        var courseEntity = new CourseEntity() 
-        { 
-            Id = Guid.Empty, 
-            Name = "Title", 
-            Duration = 10, 
-            Students= new List<StudentEntity>()
-        };
-        var teacherEntity = new TeacherEntity() { Id = Guid.Empty, Name = "Name", Degree = "PH Doctor" };
-        
-        _mockRepositoryWrapper
-            .Setup(x => x.BeginTransaction())
-            .Returns(new System.Transactions.TransactionScope());
+        var courseEntity = new CourseEntity() { Id = Guid.Empty, Name = "Title", Duration = 10 };
+        var teacherEntity = new TeacherEntity() { Id = Guid.Empty, Name = "Title", Degree = "PH Doctor" };
 
         _mockRepositoryWrapper
             .Setup(r => r.TeachersRepository.GetFirstOrDefaultAsync(It.IsAny<Expression<Func<TeacherEntity, bool>>>(), null))
             .ReturnsAsync(teacherEntity);
-
         _mockRepositoryWrapper
             .Setup(r => r.CoursesRepository.GetFirstOrDefaultAsync(It.IsAny<Expression<Func<CourseEntity, bool>>>(), null))
             .ReturnsAsync(courseEntity);
 
         _mockRepositoryWrapper
-            .Setup(r => r.StudentsRepository.GetAllAsync(It.IsAny<Expression<Func<StudentEntity, bool>>>(), null))
-            .ReturnsAsync(studentList);
-
-        _mockRepositoryWrapper
-            .Setup(r => r.StudentCourseRepository.GetAllAsync(It.IsAny<Expression<Func<StudentCourse, bool>>>(), null))
-            .ReturnsAsync(new List<StudentCourse>());
+            .Setup(r => r.CoursesRepository.Create(It.IsAny<CourseEntity>()))
+            .Returns(courseEntity);
 
         _mockRepositoryWrapper
             .Setup(repo => repo.SaveChangesAsync())
@@ -214,7 +190,6 @@ public class UpdateCourseHandlerTests
         _mockMapper
             .Setup(m => m.Map<CourseEntity>(It.IsAny<UpdateCourseRequestDto>()))
             .Returns(courseEntity);
-
         _mockMapper
             .Setup(m => m.Map<UpdateCourseResponseDto>(It.IsAny<CourseEntity>()))
             .Returns(GetValidUpdateCourseResponse());
@@ -250,19 +225,11 @@ public class UpdateCourseHandlerTests
             Id: Guid.Empty,
             Name: "Title",
             Duration: 10,
-            TeacherId: Guid.Empty,
-            CourseStudents: new List<Guid>() { Guid.Empty });
+            TeacherId: Guid.Empty);
     }
 
     private static UpdateCourseResponseDto GetValidUpdateCourseResponse()
     {
-        return new UpdateCourseResponseDto()
-        {
-            Id = Guid.NewGuid(),
-            Name = "title",
-            Duration = 10,
-            TeacherId = Guid.NewGuid(),
-            CourseStudents = new List<Guid>()
-        };
+        return new UpdateCourseResponseDto(Id: Guid.NewGuid(), Name: "title",Duration: 10, Guid.NewGuid());
     }
 }
