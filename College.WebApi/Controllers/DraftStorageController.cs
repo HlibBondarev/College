@@ -1,7 +1,8 @@
-﻿using College.BLL.Common;
-using College.BLL.Services.DraftStorage.Interfaces;
+﻿using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using College.BLL.Common;
+using College.BLL.Services.DraftStorage.Interfaces;
 
 namespace College.WebApi.Controllers;
 
@@ -34,7 +35,7 @@ public class DraftStorageController<T> : ControllerBase
 
         await draftStorageService.CreateAsync(GettingUserProperties.GetUserId(User), draftDto).ConfigureAwait(false);
 
-        return Ok($"{typeof(T).Name} is stored");
+        return Ok($"{draftDto?.GetType().Name} is stored ({JsonSerializer.Serialize(draftDto)})");
     }
 
     /// <summary>Restores the entity draft.</summary>
@@ -43,9 +44,9 @@ public class DraftStorageController<T> : ControllerBase
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> RestoreDraft()
     {
-        var memento = await draftStorageService.RestoreAsync(GettingUserProperties.GetUserId(User)).ConfigureAwait(false);
+        var draft = await draftStorageService.RestoreAsync(GettingUserProperties.GetUserId(User)).ConfigureAwait(false);
 
-        return Ok(memento);
+        return Ok(draft);
     }
 
     /// <summary>Removes the entity draft from the cache.</summary>

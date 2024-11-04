@@ -9,4 +9,9 @@ public class TeacherWithNameDto
 {
     [Required(ErrorMessage = "Name is required")]
     public string? Name { get; set; }
+
+    public override string ToString()
+    {
+        return $"{GetType().Name}: Name - {Name}";
+    }
 }

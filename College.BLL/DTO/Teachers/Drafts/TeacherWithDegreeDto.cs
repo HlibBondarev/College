@@ -6,4 +6,9 @@ public class TeacherWithDegreeDto: TeacherWithNameDto
 {
     [Required(ErrorMessage = "Degree is required")]
     public string? Degree { get; set; }
+
+    public override string ToString()
+    {
+        return $"{GetType().Name}: Name - {Name}, Degree - {Degree}";
+    }
 }
