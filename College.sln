@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "College.DAL", "College.DAL\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "College.BLL", "College.BLL\College.BLL.csproj", "{AC5281A6-DCD0-4434-85BE-CD412A17510C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "College.XUnitTest", "College.XUnitTest\College.XUnitTest.csproj", "{CA207581-E09A-4ACA-8461-9AEDBABC541E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "College.XUnitTest", "College.XUnitTest\College.XUnitTest.csproj", "{CA207581-E09A-4ACA-8461-9AEDBABC541E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "College.Redis", "College.Redis\College.Redis.csproj", "{3C415F13-D1EE-479F-AEA3-83D14FF257CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{CA207581-E09A-4ACA-8461-9AEDBABC541E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA207581-E09A-4ACA-8461-9AEDBABC541E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA207581-E09A-4ACA-8461-9AEDBABC541E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C415F13-D1EE-479F-AEA3-83D14FF257CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C415F13-D1EE-479F-AEA3-83D14FF257CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C415F13-D1EE-479F-AEA3-83D14FF257CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C415F13-D1EE-479F-AEA3-83D14FF257CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

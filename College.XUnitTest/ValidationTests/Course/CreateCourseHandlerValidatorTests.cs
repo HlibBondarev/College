@@ -27,7 +27,8 @@ public class CreateCourseHandlerValidatorTests
             Request: new CreateCourseRequestDto(
                 Name: new string('a', number),
                 Duration: MINDURATION,
-                TeacherId: Guid.NewGuid()
+                TeacherId: Guid.NewGuid(),
+                CourseStudents: new List<Guid>()
                 ));
 
         // Act
@@ -47,7 +48,8 @@ public class CreateCourseHandlerValidatorTests
             Request: new CreateCourseRequestDto(
                 Name: new string('a', number),
                 Duration: MINDURATION,
-                TeacherId: Guid.NewGuid()
+                TeacherId: Guid.NewGuid(),
+                CourseStudents: new List<Guid>()
                 ));
 
         // Act
@@ -66,7 +68,8 @@ public class CreateCourseHandlerValidatorTests
             Request: new CreateCourseRequestDto(
                 Name: new string('a', MINNAME),
                 Duration: number,
-                TeacherId: Guid.NewGuid()
+                TeacherId: Guid.NewGuid(),
+                CourseStudents: new List<Guid>()
                 ));
 
         // Act
@@ -86,7 +89,8 @@ public class CreateCourseHandlerValidatorTests
             Request: new CreateCourseRequestDto(
                 Name: new string('a', MINNAME),
                 Duration: number,
-                TeacherId: Guid.NewGuid()
+                TeacherId: Guid.NewGuid(),
+                CourseStudents: new List<Guid>()
                 ));
 
         // Act
@@ -104,7 +108,8 @@ public class CreateCourseHandlerValidatorTests
             Request: new CreateCourseRequestDto(
                 Name: new string('a', MINNAME),
                 Duration: MINDURATION,
-                TeacherId: Guid.Empty
+                TeacherId: Guid.Empty,
+                CourseStudents: new List<Guid>()
                 ));
 
         // Act
@@ -122,7 +127,8 @@ public class CreateCourseHandlerValidatorTests
             Request: new CreateCourseRequestDto(
                 Name: new string('a', MINNAME),
                 Duration: MINDURATION,
-                TeacherId: Guid.NewGuid()
+                TeacherId: Guid.NewGuid(),
+                CourseStudents: new List<Guid>()
                 ));
 
         // Act

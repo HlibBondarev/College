@@ -30,7 +30,6 @@ public sealed class UpdateStudentHandler : IRequestHandler<UpdateStudentCommand,
         using var transaction = _repositoryWrapper.BeginTransaction();
 
         var studentToUpdate = _mapper.Map<StudentEntity>(request);
-
         var existedStudent = await _repositoryWrapper.StudentsRepository
             .GetFirstOrDefaultAsync(student => student.Id == request.Id);
 
@@ -73,7 +72,7 @@ public sealed class UpdateStudentHandler : IRequestHandler<UpdateStudentCommand,
         {
             if (oldCourses.FirstOrDefault(sc => sc.CourseId == newCourseId) == null)
             {
-                _repositoryWrapper.StudentCourseRepository.Create(
+                await _repositoryWrapper.StudentCourseRepository.CreateAsync(
                     new StudentCourse() { StudentId = studentToUpdate.Id, CourseId = newCourseId });
             }
         }
@@ -99,14 +98,14 @@ public sealed class UpdateStudentHandler : IRequestHandler<UpdateStudentCommand,
         return Result.Fail(errorMsg);
     }
 
-    private bool AreCoursesTheSameAsync(UpdateStudentRequestDto request)
+    private static bool AreCoursesTheSameAsync(UpdateStudentRequestDto request)
     {
         return request.StudentCourses.Distinct().Count() != request.StudentCourses.Count;
     }
 
     private Result<UpdateStudentResponseDto> CoursesAreTheSameError(UpdateStudentRequestDto request)
     {
-        string errorMsg = string.Format("Two or more courses passed in the request are the same.");
+        string errorMsg = "Two or more courses passed in the request are the same.";
         _logger.LogError(request, errorMsg);
         return Result.Fail(errorMsg);
     }
@@ -119,7 +118,7 @@ public sealed class UpdateStudentHandler : IRequestHandler<UpdateStudentCommand,
 
     private Result<UpdateStudentResponseDto> CoursesNotExistedError(UpdateStudentRequestDto request)
     {
-        string errorMsg = string.Format("One or more courses passed in the request do not exist.");
+        string errorMsg = "One or more courses passed in the request do not exist.";
         _logger.LogError(request, errorMsg);
         return Result.Fail(errorMsg);
     }
